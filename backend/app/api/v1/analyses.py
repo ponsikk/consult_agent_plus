@@ -73,35 +73,65 @@ async def create_analysis(
             detail="Invalid shot_date format. Expected YYYY-MM-DD.",
         )
 
+    # --- Шаг 1: Создаём записи в БД со статусом "uploading" ---
+    # Это гарантирует, что у каждого файла в MinIO есть запись в БД.
+    # "Сиротских" файлов в S3 не будет: сначала БД, потом MinIO.
     analysis_id = uuid.uuid4()
+
+    # Предварительно генерируем ключи MinIO (детерминированно)
+    photo_plan = []
+    for idx, upload_file in enumerate(photos):
+        photo_id = uuid.uuid4()
+        ext = MIME_TO_EXT.get(upload_file.content_type, "jpg")
+        key = f"photos/{analysis_id}/{photo_id}_original.{ext}"
+        photo_plan.append((photo_id, upload_file, key, idx))
+
     analysis = Analysis(
         id=analysis_id,
         user_id=current_user.id,
         object_name=object_name,
         shot_date=parsed_date,
-        status="pending",
+        status="uploading",
     )
     db.add(analysis)
 
-    for idx, upload_file in enumerate(photos):
-        photo_id = uuid.uuid4()
-        ext = MIME_TO_EXT.get(upload_file.content_type, "jpg")
-        key = f"photos/{analysis_id}/{photo_id}_original.{ext}"
-
-        data = await upload_file.read()
-        await storage_service.upload_file(key, data, upload_file.content_type)
-
-        photo_record = AnalysisPhoto(
+    for photo_id, _, key, idx in photo_plan:
+        db.add(AnalysisPhoto(
             id=photo_id,
             analysis_id=analysis_id,
             original_key=key,
             annotated_key=None,
             order_index=idx,
-        )
-        db.add(photo_record)
+        ))
 
+    # Сохраняем записи — теперь у нас есть "якорь" в БД
     await db.commit()
-    await db.refresh(analysis)
+
+    # --- Шаг 2: Загружаем файлы в MinIO ---
+    # Если загрузка упадёт — Analysis останется в статусе "uploading"/"error",
+    # никаких сиротских файлов в S3.
+    try:
+        for _, upload_file, key, _ in photo_plan:
+            data = await upload_file.read()
+            await storage_service.upload_file(key, data, upload_file.content_type)
+    except Exception as upload_err:
+        # Помечаем анализ как ошибочный, не удаляя записи из БД
+        result = await db.execute(select(Analysis).where(Analysis.id == analysis_id))
+        failed_analysis = result.scalar_one_or_none()
+        if failed_analysis:
+            failed_analysis.status = "error"
+            failed_analysis.error_message = f"Upload failed: {upload_err}"
+            await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Failed to upload photos to storage: {upload_err}",
+        )
+
+    # --- Шаг 3: Все файлы загружены → статус pending + очередь ARQ ---
+    result = await db.execute(select(Analysis).where(Analysis.id == analysis_id))
+    analysis = result.scalar_one()
+    analysis.status = "pending"
+    await db.commit()
 
     await arq_pool.enqueue_job("process_analysis", str(analysis_id))
 

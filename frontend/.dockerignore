@@ -1,0 +1,21 @@
+# Dependencies (installed during build)
+node_modules/
+
+# Build output (generated during build)
+dist/
+.vite/
+
+# Test artifacts
+src/__tests__/
+coverage/
+
+# Dev
+.env
+.env.*
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -5,6 +5,7 @@ import asyncio
 import logging
 from typing import List, Dict, Any
 from app.config import settings
+from app.services.mock_ai_service import analyze_photo_mock
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,9 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
     Analyzes a photo using OpenRouter Vision API.
     Retries up to 3 times on invalid JSON or API errors.
     """
+    if settings.USE_MOCK_AI:
+        return await analyze_photo_mock(image_bytes)
+
     api_key = settings.OPENROUTER_API_KEY
     model = settings.OPENROUTER_MODEL
     url = "https://openrouter.ai/api/v1/chat/completions"

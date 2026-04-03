@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.auth import router as auth_router
 from app.api.v1.analyses import router as analyses_router
+from app.api.v1.reports import router as reports_router
 from app.database import Base, engine
 
 app = FastAPI(title="Цифровой Инспектор API", version="1.0.0")
@@ -21,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(analyses_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
 
 
 @app.on_event("startup")

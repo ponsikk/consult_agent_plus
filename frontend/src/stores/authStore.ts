@@ -19,14 +19,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: {
-        id: 'dev-id',
-        email: 'admin@inspector.ai',
-        full_name: 'Admin Bypass',
-        role: 'admin',
-        created_at: new Date().toISOString()
-      },
-      token: 'dev-token',
+      user: null,
+      token: null,
       login: (user, token) => set({ user, token }),
       logout: () => set({ user: null, token: null }),
     }),

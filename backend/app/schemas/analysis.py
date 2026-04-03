@@ -74,3 +74,15 @@ class PaginatedAnalyses(BaseModel):
     total: int
     page: int
     per_page: int
+
+
+class DefectTypeOut(BaseModel):
+    id: UUID
+    code: str
+    system: str
+    system_name: str
+    name: str
+    default_criticality: str
+    norm_references: Optional[list] = []
+
+    model_config = {"from_attributes": True}

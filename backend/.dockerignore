@@ -1,0 +1,25 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test & lint artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+tests/
+
+# Dev
+.env
+.env.*
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp

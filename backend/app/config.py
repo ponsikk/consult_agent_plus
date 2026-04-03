@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://redis:6379"
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_MODEL: str = "google/gemini-2.5-flash-lite"
+    USE_MOCK_AI: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

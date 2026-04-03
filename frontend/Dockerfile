@@ -1,12 +1,22 @@
 FROM node:20-alpine AS builder
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+RUN npm ci
+
 COPY . .
 RUN npm run build
 
 FROM nginx:stable-alpine
+
+# Copy built assets, nginx config and set ownership
 COPY --from=builder /app/dist /usr/share/nginx/html
-# Default config, F04 will provide a custom one later
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
 EXPOSE 80
+
+# nginx master process binds port 80 (requires root), worker processes run as nginx user
 CMD ["nginx", "-g", "daemon off;"]

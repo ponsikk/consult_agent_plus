@@ -46,6 +46,10 @@ seed_defect_types.py
 *.xlsx
 !frontend/public/
 !frontend/src/assets/
+frontend/coverage/
+
+# Координация
+/coordination/agent_locks/
 
 
 # Временно убрать, потом возможно добавить
@@ -53,3 +57,4 @@ seed_defect_types.py
 *.docx
 launch-agents.sh
 /coordination
+qa_report.md
