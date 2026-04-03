@@ -3,7 +3,7 @@ import httpx
 import json
 import asyncio
 import logging
-from typing import List, Dict, Any
+from typing import Dict, Any
 from app.config import settings
 from app.services.mock_ai_service import analyze_photo_mock
 

@@ -9,7 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.database import Base, get_db
-from app.deps import get_current_user, get_arq_pool
+from app.deps import get_arq_pool
 from app.models.user import User
 from app.api.v1.auth import hash_password
 

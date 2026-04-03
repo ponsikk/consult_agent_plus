@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from app.services.ai_service import analyze_photo
 from app.config import settings
 from io import BytesIO

@@ -1,6 +1,4 @@
-import json
 import asyncio
-import random
 from typing import Dict, Any
 
 def get_mock_analysis_result() -> Dict[str, Any]:

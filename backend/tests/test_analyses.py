@@ -1,6 +1,7 @@
 import pytest
 import io
 import uuid
+import datetime
 from httpx import AsyncClient
 from app.models.analysis import Analysis
 
@@ -82,8 +83,6 @@ async def test_list_analyses(client: AsyncClient, auth_headers, test_user):
 async def test_get_analysis_status(client: AsyncClient, auth_headers, db_session, test_user):
     # Create an analysis record directly in DB for testing GET
     analysis_id = uuid.uuid4()
-    import datetime
-    from app.models.analysis import Analysis
     db_session.add(Analysis(
         id=analysis_id,
         user_id=test_user.id,
