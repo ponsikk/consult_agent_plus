@@ -1,0 +1,55 @@
+# ENV — никогда не коммитить!
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Docker volumes (если локально)
+postgres_data/
+minio_data/
+redis_data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Тестовые скрипты и дампы (Digital Inspector)
+test_vision_manual.py
+vision_test_output.json
+extract_defects.py
+extract_tables.py
+seed_test_user.py
+seed_defect_types.py
+*.jfif
+*.jpg
+*.png
+*.pdf
+*.xlsx
+!frontend/public/
+!frontend/src/assets/
+
+
+# Временно убрать, потом возможно добавить
+ПОМЕТКИ.md
+*.docx
+launch-agents.sh
+/coordination

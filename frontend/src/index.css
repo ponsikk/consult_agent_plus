@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+/* HappyHues Palette #11 — Light Theme */
+:root {
+  --background: #fef6e4;
+  --foreground: #272343;
+  --card: #ffffff;
+  --card-foreground: #272343;
+  --popover: #ffffff;
+  --popover-foreground: #272343;
+  --primary: #f582ae;
+  --primary-foreground: #ffffff;
+  --secondary: #ffd803;
+  --secondary-foreground: #272343;
+  --muted: #e3f6f5;
+  --muted-foreground: #6e6e6e;
+  --accent: #ffd803;
+  --accent-foreground: #272343;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #dde0e3;
+  --input: #dde0e3;
+  --ring: #f582ae;
+  --radius: 0.5rem;
+  --sidebar: #fffffe;
+  --sidebar-foreground: #272343;
+  --sidebar-primary: #f582ae;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffd803;
+  --sidebar-accent-foreground: #272343;
+  --sidebar-border: #dde0e3;
+  --sidebar-ring: #f582ae;
+}
+
+/* HappyHues Palette #13 — Dark Theme */
+.dark {
+  --background: #0f0e17;
+  --foreground: #fffffe;
+  --card: #1a1a2e;
+  --card-foreground: #fffffe;
+  --popover: #1a1a2e;
+  --popover-foreground: #fffffe;
+  --primary: #ff8906;
+  --primary-foreground: #0f0e17;
+  --secondary: #2a2a3d;
+  --secondary-foreground: #fffffe;
+  --muted: #2a2a3d;
+  --muted-foreground: #a7a9be;
+  --accent: #ff8906;
+  --accent-foreground: #0f0e17;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2a2a3d;
+  --input: #2a2a3d;
+  --ring: #ff8906;
+  --sidebar: #1a1a2e;
+  --sidebar-foreground: #fffffe;
+  --sidebar-primary: #ff8906;
+  --sidebar-primary-foreground: #0f0e17;
+  --sidebar-accent: #2a2a3d;
+  --sidebar-accent-foreground: #fffffe;
+  --sidebar-border: #2a2a3d;
+  --sidebar-ring: #ff8906;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: 'Manrope', sans-serif;
+  --font-heading: 'Oswald', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Manrope', sans-serif;
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
