@@ -1,0 +1,18 @@
+# Dev override: replaces Nginx with Vite dev server for HMR support.
+# Usage: make dev   (runs docker compose -f docker-compose.yml -f docker-compose.override.yml up)
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "5173:5173"
+    depends_on: []
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: rebuild
+          path: ./frontend/package.json
