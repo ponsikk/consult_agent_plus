@@ -1,4 +1,4 @@
-export type AnalysisStatus = 'pending' | 'processing' | 'done' | 'error'
+export type AnalysisStatus = 'uploading' | 'pending' | 'processing' | 'done' | 'error'
 
 export interface Analysis {
   id: string
