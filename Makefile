@@ -24,11 +24,12 @@ shell-backend:
 shell-db:
 	docker compose exec postgres psql -U inspector -d inspector
 
-# Dev mode: Vite dev server with HMR on localhost:5173
+# Dev mode: Vite dev server with HMR on localhost:5173 + file sync watch
 dev:
-	docker compose -f docker-compose.yml -f docker-compose.override.yml up
+	docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d && \
+	docker compose -f docker-compose.yml -f docker-compose.override.yml watch
 
-# Dev mode with watch (file sync without container rebuild)
+# Dev mode with watch only (if containers already running)
 watch:
 	docker compose -f docker-compose.yml -f docker-compose.override.yml watch
 
