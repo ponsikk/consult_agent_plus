@@ -6,36 +6,36 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* HappyHues Palette #11 — Light Theme */
+/* HappyHues Palette #6 — Light Theme */
 :root {
-  --background: #fef6e4;
-  --foreground: #272343;
-  --card: #ffffff;
-  --card-foreground: #272343;
-  --popover: #ffffff;
-  --popover-foreground: #272343;
-  --primary: #f582ae;
-  --primary-foreground: #ffffff;
-  --secondary: #ffd803;
-  --secondary-foreground: #272343;
-  --muted: #e3f6f5;
-  --muted-foreground: #6e6e6e;
-  --accent: #ffd803;
-  --accent-foreground: #272343;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #dde0e3;
-  --input: #dde0e3;
-  --ring: #f582ae;
+  --background: #fffffe;
+  --foreground: #2b2c34;
+  --card: #fffffe;
+  --card-foreground: #2b2c34;
+  --popover: #fffffe;
+  --popover-foreground: #2b2c34;
+  --primary: #6246ea;
+  --primary-foreground: #fffffe;
+  --secondary: #d1d1e9;
+  --secondary-foreground: #2b2c34;
+  --muted: #d1d1e9;
+  --muted-foreground: #6b7280;
+  --accent: #6246ea;
+  --accent-foreground: #fffffe;
+  --destructive: #e45858;
+  --destructive-foreground: #fffffe;
+  --border: #d1d1e9;
+  --input: #d1d1e9;
+  --ring: #6246ea;
   --radius: 0.5rem;
   --sidebar: #fffffe;
-  --sidebar-foreground: #272343;
-  --sidebar-primary: #f582ae;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ffd803;
-  --sidebar-accent-foreground: #272343;
-  --sidebar-border: #dde0e3;
-  --sidebar-ring: #f582ae;
+  --sidebar-foreground: #2b2c34;
+  --sidebar-primary: #6246ea;
+  --sidebar-primary-foreground: #fffffe;
+  --sidebar-accent: #d1d1e9;
+  --sidebar-accent-foreground: #2b2c34;
+  --sidebar-border: #d1d1e9;
+  --sidebar-ring: #6246ea;
 }
 
 /* HappyHues Palette #13 — Dark Theme */
