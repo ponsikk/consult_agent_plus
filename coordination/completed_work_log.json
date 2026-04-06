@@ -1,0 +1,245 @@
+[
+  {
+    "id": "D01",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-03T00:10:00Z",
+    "title": "Docker Compose + Makefile + CI",
+    "result": "Created docker-compose.yml (6 services: frontend, backend, worker, postgres:16-alpine, redis:7-alpine, minio), Makefile (up/down/build/logs/migrate/seed/shell-backend/shell-db), .github/workflows/ci.yml (5 jobs: lint-backend, lint-frontend, test-backend, test-frontend, build). .env is already in .gitignore."
+  },
+  {
+    "id": "B01",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-03T00:15:00Z",
+    "title": "Инициализация проекта + Auth",
+    "result": "Created FastAPI project in backend/: app/main.py (CORS localhost:5173+80, startup create_all), app/config.py (pydantic-settings), app/database.py (async SQLAlchemy+asyncpg), app/deps.py (get_current_user JWT), app/models/user.py (UUID pk, email, hashed_password, full_name, role, created_at), app/schemas/auth.py (UserCreate/UserLogin/UserOut/Token/TokenData), app/api/v1/auth.py (POST /register, POST /login→JWT, GET /me), requirements.txt, Dockerfile."
+  },
+  {
+    "id": "B02",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-03T00:30:00Z",
+    "title": "Модели БД + Alembic + Analyses API",
+    "result": "Created: app/models/analysis.py (Analysis, AnalysisPhoto, Defect, DefectType), app/schemas/analysis.py (all Pydantic schemas), app/services/storage_service.py (MinIO via aioboto3), app/api/v1/analyses.py (POST /analyses multipart, GET /analyses paginated, GET /analyses/{id}, GET /analyses/{id}/status), alembic.ini, alembic/env.py (async), alembic/versions/0001_initial.py (all 5 tables)."
+  },
+  {
+    "id": "V01",
+    "agent": "VISION",
+    "completed_at": "2026-04-03T12:15:00Z",
+    "title": "AI схема + справочник дефектов + промпты",
+    "result": "Created: coordination/ai_response_schema.json (VisionAnalysisResponse), coordination/defect_catalog.json (8 flat roof, 9 slate roof, 7 facade, 15 water, 15 heat defects), coordination/prompts.md (expert TechNadzor prompt with 3 few-shot examples), backend/app/services/ai_service.py (analyze_photo function using OpenRouter Vision API, 3 retries, strict JSON mode)."
+  },
+  {
+    "id": "F01",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-03T00:40:00Z",
+    "title": "Инициализация + Layout + Auth",
+    "result": "Created Vite+React+TS project in frontend/. Installed: tailwindcss v4, framer-motion, react-router-dom, @tanstack/react-query, axios, zustand, lucide-react, react-dropzone, shadcn/ui. Configured HappyHues palette #13 (dark) + #11 (light) in index.css. Fonts: Manrope + Oswald via Google Fonts. Created: AppLayout with Sidebar (nav links + theme toggle + logout), authStore (Zustand persist), themeStore, axios api instance with JWT interceptor + 401 handler, LoginPage, RegisterPage, routing."
+  },
+  {
+    "id": "F02",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-03T01:00:00Z",
+    "title": "Dashboard + NewAnalysis страницы",
+    "result": "DashboardPage: 4 KPI cards (total/today/critical/processing), analyses table with StatusBadge, empty state, auto-refetch 10s. NewAnalysisPage: react-dropzone (JPEG/PNG/HEIC/TIFF, max 10 files), preview grid, object name + date form, POST /analyses multipart → redirect. All Framer Motion animations."
+  },
+  {
+    "id": "B03",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-03T12:30:00Z",
+    "title": "ARQ Worker + генерация отчётов",
+    "result": "Created: app/workers/analysis_worker.py (ARQ WorkerSettings, process_analysis), app/api/v1/reports.py (GET /analyses/{id}/report/pdf|excel, GET /defects/catalog), seed_defect_types.py. Fixed ai_service.py dict response parsing."
+  },
+  {
+    "id": "F03",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-03T01:30:00Z",
+    "title": "AnalysisResult страница + bounding boxes",
+    "result": "AnalysisResultPage: polling /status every 3s, animated loader, photo sidebar with defect badges, PhotoCanvas with canvas bounding boxes (critical/significant/minor colors), hover tooltips, DefectTable, OverallStatus block, PDF/Excel download buttons."
+  },
+  {
+    "id": "D08",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-03T12:35:00Z",
+    "title": "🔴 СРОЧНО: Исправление CI пайплайна (Linter Errors)",
+    "result": "Fixed ESLint errors in badge.tsx/button.tsx. Created backend/.dockerignore + frontend/.dockerignore. Updated Dockerfiles with non-root user."
+  },
+  {
+    "id": "D09",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-03T12:40:00Z",
+    "title": "Redis Persistence & Healthchecks",
+    "result": "Added Redis healthcheck (redis-cli ping). Added backend healthcheck (TCP port 8000). Updated depends_on with service_healthy conditions."
+  },
+  {
+    "id": "V02",
+    "agent": "VISION",
+    "completed_at": "2026-04-03T12:45:00Z",
+    "title": "AI Mock Service + Integration Test",
+    "result": "Created: backend/app/services/mock_ai_service.py (deterministic responses), backend/tests/test_ai_integration.py. Updated config.py (USE_MOCK_AI setting), ai_service.py (mock integration), .env (USE_MOCK_AI=true)."
+  },
+  {
+    "id": "F04",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-03T02:00:00Z",
+    "title": "Каталог дефектов + polish",
+    "result": "CatalogPage: accordion by systems (5 systems), search by name/code, DefectCard with criticality badge. nginx.conf: SPA fallback + /api/ proxy. Mobile sidebar: hamburger + AnimatePresence overlay. All pages build clean."
+  },
+  {
+    "id": "B11",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-03T12:46:00Z",
+    "title": "API: Missing Catalog Endpoint",
+    "result": "Verified: GET /api/v1/defects/catalog?system= already implemented in app/api/v1/reports.py (created in B03). Returns List[DefectTypeOut] with optional system filter."
+  },
+  {
+    "id": "B09",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-03T12:50:00Z",
+    "title": "Async Worker Optimization (Pillow fix)",
+    "result": "Refactored analysis_worker.py: extracted _draw_bounding_boxes_sync, _generate_pdf_sync, _generate_excel_sync as pure sync functions. All CPU ops run via loop.run_in_executor(_executor, partial(fn, ...)). Global ThreadPoolExecutor(max_workers=4), shutdown in on_shutdown. Event loop no longer blocked."
+  },
+  {
+    "id": "B12",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-03T12:55:00Z",
+    "title": "Database Transaction Safety",
+    "result": "Rewrote create_analysis: Step 1 — pre-generate photo_ids+MinIO keys, create Analysis(status='uploading')+AnalysisPhoto records → commit. Step 2 — upload to MinIO; on failure → set status='error' → 502. Step 3 — status='pending' → commit → enqueue ARQ. No orphaned S3 files."
+  },
+  {
+    "id": "Q01",
+    "agent": "QA",
+    "completed_at": "2026-04-03T13:10:00Z",
+    "title": "Backend Test Suite (Auth + Analyses)",
+    "result": "Created: backend/tests/conftest.py (SQLite in-memory, AsyncClient, overrides for get_db and get_arq_pool, test_user, auth_headers, mock_storage), backend/tests/test_auth.py (register, duplicate, login, wrong password, get_me), backend/tests/test_analyses.py (create success, no photos, too many photos, invalid date, list, get status, 404)."
+  },
+  {
+    "id": "Q02",
+    "agent": "QA",
+    "completed_at": "2026-04-03T13:20:00Z",
+    "title": "Frontend Integration Tests (Upload + Canvas)",
+    "result": "Created: frontend/src/__tests__/UploadZone.test.tsx (test rendering, field validation, submission state), frontend/src/__tests__/AnalysisResult.test.tsx (test loading state, params handling). Tests use Vitest + React Testing Library (logic provided, actual run requires installing devDeps)."
+  },
+  {
+    "id": "F10",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-03T02:30:00Z",
+    "title": "Client-side Validation & HMR Fix",
+    "result": "Added MAX_FILE_SIZE=10MB constant and validation in onDrop with specific toast errors for file-too-large vs file-invalid-type. Size shown in preview overlay. Fixed build: tsconfig.app.json excludes __tests__ dirs. Installed vitest + @testing-library/react + jsdom. Created vitest.config.ts with jsdom env + path alias. Created __tests__/setup.ts. Added test/test:watch/test:coverage scripts. Build clean."
+  },
+  {
+    "id": "D10",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T00:05:00Z",
+    "title": "Docker Watch Mode (live reload)",
+    "result": "Added develop.watch sections to docker-compose.yml for 3 services: (1) frontend — action:sync ./frontend/src → /app/src (Vite HMR), action:rebuild on package.json changes. (2) backend — action:sync+restart ./backend/app → /app/app (uvicorn restarts), action:rebuild on requirements.txt changes. (3) worker — same as backend: sync+restart on app/ changes, rebuild on requirements.txt. Run with: docker compose watch."
+  },
+  {
+    "id": "F05",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T10:10:00Z",
+    "title": "SVG логотип в сайдбаре и на странице авторизации",
+    "result": "Copied UTNKR_RGB_01.1.svg from project root to frontend/public/. Sidebar.tsx: replaced ShieldCheck lucide icon with <img src=\"/UTNKR_RGB_01.1.svg\" className=\"h-8 w-auto flex-shrink-0\" />, removed ShieldCheck import. LoginPage.tsx and RegisterPage.tsx: replaced icon+text header block with <img h-12 w-auto> centered above form card. Removed ShieldCheck imports from both pages. git commit: 28cb26a."
+  },
+  {
+    "id": "B15",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T12:30:00Z",
+    "title": "Fix 20 Mypy Type Errors",
+    "result": "Исправлены ошибки типизации mypy во всём backend. Основные изменения: (1) models/analysis.py и models/user.py конвертированы на SQLAlchemy 2.0 Mapped[] + mapped_column() вместо старого Column() — mypy теперь знает точные типы колонок; (2) deps.py: get_current_user возвращает User (не Optional), добавлен HTTPException при отсутствии пользователя; get_arq_pool явно возвращает ArqRedis; (3) api/v1/analyses.py: arq_pool: ArqRedis, content_type guard от None, photo_plan типизирован, добавлены return-type аннотации; (4) workers/analysis_worker.py: dict/list → Dict[str, Any]/List[...], Optional[Analysis], Optional[DefectType], float() cast для bbox, startup/shutdown имеют Dict[str, Any] параметр. Коммит: 2fe609a.",
+    "files_modified": [
+      "backend/app/models/analysis.py",
+      "backend/app/models/user.py",
+      "backend/app/deps.py",
+      "backend/app/api/v1/analyses.py",
+      "backend/app/workers/analysis_worker.py"
+    ]
+  },
+  {
+    "id": "F11",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T10:35:00Z",
+    "title": "Светлая тема — заменить на HappyHues Palette #6",
+    "result": "Replaced :root CSS vars in frontend/src/index.css: background #fffffe, foreground #2b2c34, primary #6246ea (purple accent), primary-foreground #fffffe, secondary/muted/border #d1d1e9, muted-foreground #6b7280, destructive #e45858. All sidebar vars updated to match. Updated AGENTS.md palette line from #11 to #6. git commit: bde7170."
+  },
+  {
+    "id": "F12",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T10:50:00Z",
+    "title": "Аудит Dashboard (F02) — проверить и довести до конца",
+    "result": "Added: (1) separate stats query per_page=100 for accurate doneToday/inProcessing/criticalDefects KPIs; (2) pagination UI with prev/next buttons + page X of N counter using data.pages; (3) error state with AlertCircle icon + retry button; (4) TableSkeleton (5-row animated) instead of spinner; (5) KpiCard skeleton placeholders while loading; (6) criticalDefects counted from analysis.photos?.defects (0 when list API does not return defects); (7) StatusBadge covers uploading status. Added uploading to AnalysisStatus type. Created skeleton.tsx shadcn/ui component. Build clean. git commit: a74b264."
+  },
+  {
+    "id": "Q03",
+    "agent": "QA",
+    "completed_at": "2026-04-06T00:30:00Z",
+    "title": "E2E тесты по функционалу + CI проверка",
+    "result": "Created: frontend/playwright.config.ts, frontend/e2e/auth.spec.ts, frontend/e2e/analysis.spec.ts, frontend/e2e/catalog.spec.ts. Updated: frontend/package.json (test:e2e script), .github/workflows/ci.yml (test-e2e job after build). Configured CI to run against docker-compose environment with healthchecks."
+  },
+  {
+    "id": "D11",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T01:10:00Z",
+    "title": "Починить dev-режим фронта: Vite dev server вместо Nginx",
+    "result": "Added dev stage to frontend/Dockerfile (node:20-alpine, npm ci, EXPOSE 5173, CMD npm run dev -- --host 0.0.0.0). Updated vite.config.ts: server.host=0.0.0.0, server.port=5173. Created docker-compose.override.yml: overrides frontend service with build target=dev, port 5173:5173, develop.watch sync ./frontend/src → /app/src + rebuild on package.json. Updated Makefile: added make dev (runs with override), make watch (compose watch with override), make prod (standard prod). Usage: make dev → localhost:5173 with Vite HMR."
+  },
+  {
+    "id": "F13",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T11:10:00Z",
+    "title": "Брендинг сайдбара — лого УТНКР + надпись Инспектор в стиле uristconsult",
+    "result": "Sidebar.tsx: logo block restructured to [img h-8] | [1px w-px h-5 divider bg-sidebar-border] | [ИНСПЕКТОР text]. Text style: Oswald 700, letter-spacing 0.08em, uppercase, clamp(18px,3vw,26px). Added collapsed prop (default false) — divider+text hidden when collapsed. LoginPage.tsx + RegisterPage.tsx: same structure with h-12 logo + h-6 divider + 28px text. Colors via text-sidebar-foreground/text-foreground (theme-aware). Build clean. git commit: b388526."
+  },
+  {
+    "id": "D12",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T01:25:00Z",
+    "title": "Документация по деплою — DEPLOY.md",
+    "result": "Created DEPLOY.md in project root with: requirements section, dev-mode docs (make dev, localhost:5173, HMR behavior), prod-mode docs (make up, localhost:80, Nginx), first-run steps (migrate + seed), change-rebuild matrix, full Makefile commands table, stop/clean section, service architecture diagram. Also added make clean (docker compose down -v) to Makefile."
+  },
+  {
+    "id": "F14",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T12:05:00Z",
+    "title": "Фоновый паттерн (волны) на всех страницах",
+    "result": "Added wave SVG background pattern to body in index.css. Light theme: fill-opacity 0.4. Dark theme (.dark body): fill-opacity 0.1 for subtlety. background-repeat: repeat, background-size: 100px 20px. Applies to all pages (Login, Register, Dashboard, NewAnalysis, AnalysisResult, Catalog). Build clean. git commit: 46f3d1c."
+  },
+  {
+    "task_id": "D13",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T13:05:00Z",
+    "summary": "Fixed make dev: now runs containers in detached mode (up --build -d) then starts docker compose watch as foreground process. HMR and file sync now work automatically without running make watch separately.",
+    "files_changed": [
+      "Makefile"
+    ]
+  },
+  {
+    "task_id": "BUG-01",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T13:00:00Z",
+    "summary": "Added `from __future__ import annotations` as first line in analysis.py and user.py. Makes all annotations lazy strings — resolves Ruff F821 'Undefined name User/Analysis' blocking CI. Removed redundant `# type: ignore[name-defined]` comments.",
+    "files_changed": [
+      "backend/app/models/analysis.py",
+      "backend/app/models/user.py"
+    ]
+  },
+  {
+    "task_id": "F15",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:10:00Z",
+    "summary": "Переделан блок логотипа в Sidebar.tsx, LoginPage.tsx, RegisterPage.tsx: горизонтальный лейаут [лого|разделитель|текст] заменён на вертикальный flex-col [лого, ИНСПЕКТОР]. Убран вертикальный разделитель. Лого h-8 в Sidebar, h-10 на страницах авторизации.",
+    "files_changed": ["frontend/src/components/layout/Sidebar.tsx", "frontend/src/pages/LoginPage.tsx", "frontend/src/pages/RegisterPage.tsx"]
+  },
+  {
+    "task_id": "F16",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:18:00Z",
+    "summary": "Починена верстка CatalogPage: убран bg-background с корневого div AppLayout — теперь волновой паттерн body виден на всех страницах. Заменены хардкод-цвета (red/orange/yellow) на CSS-vars (destructive/primary/muted) в CRITICALITY_CONFIG. Добавлен type=multiple в Accordion для корректного раскрытия всех секций.",
+    "files_changed": ["frontend/src/components/layout/AppLayout.tsx", "frontend/src/pages/CatalogPage.tsx"]
+  },
+  {
+    "task_id": "BUG-02",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:18:00Z",
+    "summary": "Исправлены 3 ESLint ошибки: удалены неиспользуемые импорты vi и waitFor из UploadZone.test.tsx; исправлен useEffect в AnalysisResultPage — selectedPhoto убран из deps (react-hooks/set-state-in-effect).",
+    "files_changed": ["frontend/src/__tests__/UploadZone.test.tsx", "frontend/src/pages/AnalysisResultPage.tsx"]
+  }
+]

@@ -1,0 +1,178 @@
+[
+  {
+    "id": "B09",
+    "agent": "BACKEND",
+    "status": "done",
+    "title": "Async Worker Optimization (Pillow fix)",
+    "description": "Вынеси всю работу с Pillow и генерацию отчетов (WeasyPrint/Excel) в отдельные потоки через `run_in_executor`. Воркер не должен блокировать Event Loop."
+  },
+  {
+    "id": "B12",
+    "agent": "BACKEND",
+    "status": "done",
+    "title": "Database Transaction Safety",
+    "description": "Переделай логику загрузки в create_analysis: сначала создавай записи в БД в статусе 'uploading', затем загружай в MinIO, и только потом меняй статус на 'pending' и ставь задачу в очередь. Это предотвратит появление 'сиротских' файлов в S3."
+  },
+  {
+    "id": "F10",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Client-side Validation & HMR Fix",
+    "description": "Добавь валидацию размера файлов (макс 10МБ на фото) в NewAnalysisPage. Исправь экспорт компонентов для корректной работы HMR (Fast Refresh)."
+  },
+  {
+    "id": "D09",
+    "agent": "DEVOPS",
+    "status": "done",
+    "title": "Redis Persistence & Healthchecks",
+    "description": "Добавь volume для Redis в docker-compose.yml, чтобы очередь задач не пропадала при рестарте. Добавь healthcheck для бэкенда (проверка /health или просто статус API)."
+  },
+  {
+    "id": "V02",
+    "agent": "VISION",
+    "status": "done",
+    "title": "AI Mock Service + Integration Test",
+    "description": "1) Создай backend/app/services/mock_ai_service.py, который возвращает детерминированные ответы на основе defect_catalog.json для тестирования без API. 2) Напиши backend/tests/test_ai_integration.py: проверь ai_service.py на реальном фото (используй pytest-asyncio). 3) Добавь в .env параметр USE_MOCK_AI=true."
+  },
+  {
+    "id": "Q01",
+    "agent": "QA",
+    "status": "done",
+    "title": "Backend Test Suite (Auth + Analyses)",
+    "description": "Реализуй тесты в backend/tests/: test_auth.py (регистрация, логин, JWT), test_analyses.py (создание, листинг, статусы). Мокируй MinIO и AI."
+  },
+  {
+    "id": "Q02",
+    "agent": "QA",
+    "status": "done",
+    "title": "Frontend Integration Tests (Upload + Canvas)",
+    "description": "Напиши тесты в frontend/src/__tests__/: UploadZone.test.tsx (валидация файлов), AnalysisResult.test.tsx (проверка отрисовки bounding boxes на canvas)."
+  },
+  {
+    "id": "F05",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "SVG логотип в сайдбаре и на странице авторизации",
+    "description": "Файл логотипа: frontend/public/UTNKR_RGB_01.1.svg (положи его туда). 1) В Sidebar.tsx: добавь логотип в левый верхний угол сайдбара. Используй тег <img src=\"/UTNKR_RGB_01.1.svg\" /> с высотой h-8 (32px), рядом текст названия приложения шрифтом Oswald. При свёрнутом сайдбаре показывай только иконку (w-8 h-8). 2) На LoginPage и RegisterPage: добавь логотип по центру над формой, h-12 (48px). Сам SVG файл создай как простой placeholder: прямоугольник с текстом UTNKR внутри, цвет акцента #ff8906 — настоящий SVG тимлид заменит вручную позже."
+  },
+  {
+    "id": "B15",
+    "agent": "BACKEND",
+    "status": "done",
+    "title": "Fix 20 Mypy Type Errors",
+    "description": "Исправь 20 ошибок типизации, найденных mypy. Основные места: app/workers/analysis_worker.py, app/api/v1/analyses.py, app/deps.py. Используй Mapped[] из SQLAlchemy 2.0 для моделей и исправь Optional типы."
+  },
+  {
+    "id": "D10",
+    "agent": "DEVOPS",
+    "status": "done",
+    "title": "Docker Watch Mode (live reload)",
+    "description": "Настрой Docker Compose Watch для dev-режима: 1) Frontend: при изменении файлов в frontend/src/ — sync в контейнер без ребилда (Vite HMR подхватит). 2) Backend: при изменении файлов в backend/app/ — sync + restart uvicorn (action: sync+restart). 3) При изменении requirements.txt или package.json — полный rebuild контейнера (action: rebuild). Используй секцию `develop.watch` в docker-compose.yml. Команда запуска: `docker compose watch`. Проверь что работает: измени любой .py файл — backend должен перезапуститься без `docker compose restart`."
+  },
+  {
+    "id": "F11",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Светлая тема — заменить на HappyHues Palette #6",
+    "description": "Замени цвета светлой темы (`:root` в index.css) на HappyHues Palette #6. Текущая светлая тема (#11) должна быть полностью заменена. Новые цвета: background → #fffffe, headline/текст → #2b2c34, paragraph → #2b2c34, button/accent → #6246ea, button text → #fffffe, secondary → #d1d1e9, tertiary (ошибки/акцент2) → #e45858. Обнови CSS-переменные: --color-background, --color-foreground, --color-primary, --color-secondary, --color-accent, --color-muted. Проверь что все страницы (Login, Register, Dashboard, NewAnalysis, AnalysisResult, Catalog) выглядят корректно в светлой теме. Также обнови палитру в AGENTS.md: строку 'Светлая тема: HappyHues Palette #11' заменить на '#6'."
+  },
+  {
+    "id": "F12",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Аудит Dashboard (F02) — проверить и довести до конца",
+    "description": "Тимлид видит что Dashboard выглядит незавершённым. Проверь: 1) KPI-карточки — отображают ли реальные данные с API или заглушки? Подключи к /analyses endpoint если нет. 2) Таблица анализов — работает ли пагинация, статусы, кнопка перехода к результату? 3) Все состояния: loading skeleton, empty state, error state — реализованы? 4) Счётчик критических дефектов — сейчас всегда 0, нужно считать из данных API. 5) Проверь что auto-refresh каждые 10 сек работает корректно. Исправь всё что не работает или выглядит как заглушка."
+  },
+  {
+    "id": "Q03",
+    "agent": "QA",
+    "status": "done",
+    "title": "E2E тесты по функционалу + CI проверка",
+    "description": "Напиши E2E тесты покрывающие полный user flow: 1) Регистрация → логин → попадание на Dashboard. 2) Создание нового анализа: загрузка фото → отправка формы → polling статуса → отображение результатов с дефектами. 3) Скачивание PDF/Excel отчёта. 4) Просмотр каталога дефектов. Используй Playwright или Cypress. Добавь эти тесты в CI pipeline (.github/workflows/ci.yml) — запускать после успешного билда Docker образов. Тесты должны работать против `docker compose up` окружения."
+  },
+  {
+    "id": "F13",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Брендинг сайдбара — лого УТНКР + надпись Инспектор в стиле uristconsult",
+    "description": "Переделай шапку Sidebar.tsx и блок лого на LoginPage/RegisterPage по образцу проекта УТНКР Юрист. Структура (слева направо): [SVG лого UTNKR_RGB_01.1.svg, h-8] [вертикальный разделитель 1px, высота 20px, цвет var(--color-border)] [надпись 'ИНСПЕКТОР']. Стиль надписи 'ИНСПЕКТОР': font-family: 'Oswald', sans-serif; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1; Размер: в Sidebar — clamp(18px, 3vw, 26px) (адаптивный), на LoginPage/RegisterPage — 28px. Цвет: в тёмной теме — #fffffe, в светлой — #2b2c34 (через CSS-переменную --logo-text если уже есть, или через Tailwind dark: класс). При свёрнутом сайдбаре — показывать только SVG лого (текст и разделитель скрыть). Убедись что шрифт Oswald импортирован в index.css (уже должен быть)."
+  },
+  {
+    "id": "D11",
+    "agent": "DEVOPS",
+    "status": "done",
+    "title": "Починить dev-режим фронта: Vite dev server вместо Nginx",
+    "description": "ПРОБЛЕМА: docker compose watch для фронта не работает потому что в контейнере крутится Nginx со статикой из билда. Sync копирует файлы в /app/src которого в контейнере нет. Vite HMR не запущен вообще.\n\nРЕШЕНИЕ: создай docker-compose.override.yml для dev-режима:\n1) В override для сервиса frontend: поменяй build target на 'dev', порт 5173:5173, убери depends_on на backend (для быстрого старта).\n2) В frontend/Dockerfile добавь новый stage перед builder:\n   FROM node:20-alpine AS dev\n   WORKDIR /app\n   COPY package*.json ./\n   RUN npm ci\n   COPY . .\n   EXPOSE 5173\n   CMD [\"npm\", \"run\", \"dev\", \"--\", \"--host\", \"0.0.0.0\"]\n3) В frontend/vite.config.ts убедись что server.host = '0.0.0.0' и server.port = 5173.\n4) В docker-compose.override.yml для фронта пропиши develop.watch с action: sync (path: ./frontend/src → target: /app/src) — теперь это будет работать потому что Vite смотрит /app/src.\n5) Обнови Makefile: добавь команду `make dev` которая запускает `docker compose -f docker-compose.yml -f docker-compose.override.yml up` и `make prod` для продакшн-сборки через обычный docker compose up.\n6) Добавь docker-compose.override.yml в .gitignore НЕ НАДО — он должен быть в репо как dev-конфиг.\nПРОВЕРКА: после `make dev` — измени любой .tsx файл, браузер на localhost:5173 должен обновиться без перезапуска контейнера."
+  },
+  {
+    "id": "D12",
+    "agent": "DEVOPS",
+    "status": "done",
+    "title": "Документация по деплою — DEPLOY.md в корень проекта",
+    "description": "Создай файл DEPLOY.md в корне проекта с полной документацией по запуску. Структура:\n\n## Требования\n- Docker Desktop >= 24, docker compose plugin, make (для Windows: Git Bash или WSL)\n- Переменные окружения: скопировать .env.example → .env, заполнить OPENROUTER_API_KEY\n\n## Dev-режим (разработка)\n- Команда: `make dev` (или `docker compose -f docker-compose.yml -f docker-compose.override.yml up --build`)\n- Frontend: http://localhost:5173 (Vite dev server, HMR работает — изменения в коде видны мгновенно)\n- Backend API: http://localhost:8000\n- MinIO console: http://localhost:9001\n- Как работает hot reload: при изменении файлов в frontend/src/ или backend/app/ изменения применяются без перезапуска контейнеров\n\n## Prod-режим (продакшн)\n- Команда: `make up` (или `docker compose up -d --build`)\n- Frontend: http://localhost:80 (Nginx, собранная статика)\n- Backend API: http://localhost:8000\n- Отличие от dev: фронт собирается через npm run build, Nginx раздаёт статику, нет HMR\n\n## Первый запуск (обязательно)\n- `make migrate` — применить миграции БД\n- `make seed` — загрузить справочник дефектов\n\n## Пересборка после изменений\n- Изменил код (src/app): ничего не нужно в dev-режиме, подхватывается автоматически\n- Изменил package.json или requirements.txt: `docker compose up --build` (пересборка образа)\n- Изменил docker-compose.yml или Dockerfile: `docker compose down && make dev/up`\n\n## Полезные команды (из Makefile)\nПеречисли все команды из Makefile с кратким описанием.\n\n## Остановка\n- `make down` — остановить все контейнеры\n- `make clean` — остановить и удалить volumes (сброс БД)\n\nДокументация должна быть понятна человеку который видит проект впервые."
+  },
+  {
+    "id": "F14",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Фоновый паттерн (волны) на всех страницах",
+    "description": "Добавь тонкий декоративный фон на все страницы приложения. В index.css на селектор body (или на --color-background через pseudo-element) добавь:\n\nbackground-color: var(--color-background);\nbackground-image: url(\"data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 14 50 14c10.271 0 15.362 1.222 24.629 4.928.955.383 1.869.74 2.75 1.072h6.225c-2.51-.73-5.139-1.691-8.233-2.928C65.888 13.278 60.562 12 50 12c-10.626 0-16.855 1.397-26.66 5.063l-1.767.662c-2.475.923-4.66 1.674-6.724 2.275h6.335zm0-20C13.258 2.892 8.077 4 0 4V2c5.744 0 9.951-.574 14.85-2h6.334zM77.38 0C85.239 2.966 90.502 4 100 4V2c-6.842 0-11.386-.542-16.396-2h-6.225zM0 14c8.44 0 13.718-1.21 22.272-4.402l1.768-.661C33.64 5.347 39.647 4 50 4c10.271 0 15.362 1.222 24.629 4.928C84.112 12.722 89.438 14 100 14v-2c-10.271 0-15.362-1.222-24.629-4.928C65.888 3.278 60.562 2 50 2 39.374 2 33.145 3.397 23.34 7.063l-1.767.662C13.223 10.84 8.163 12 0 12v2z' fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E\");\n\nВАЖНО: паттерн должен быть еле заметным. В светлой теме fill-opacity оставь 0.4 (уже умеренный). В тёмной теме (.dark body) сделай fill-opacity ещё ниже — примерно 0.08-0.12, чтобы не перебивало тёмный фон. Паттерн должен покрывать весь viewport (background-repeat: repeat, background-size: 100px 20px). Проверь на всех страницах: Login, Register, Dashboard, NewAnalysis, AnalysisResult, Catalog — везде должен быть виден фон."
+  },
+  {
+    "id": "D13",
+    "agent": "DEVOPS",
+    "status": "done",
+    "title": "HMR не работает без ребилда — починить make dev",
+    "description": "ПРОБЛЕМА: изменения в frontend/src не подхватываются без --build. Причина: docker compose watch (sync) — это отдельная команда, она не запускается автоматически при `up`. Vite внутри контейнера смотрит /app/src, но sync не активен.\n\nРЕШЕНИЕ: в Makefile команда `make dev` должна запускать ОБА процесса одновременно:\n  docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d\n  docker compose -f docker-compose.yml -f docker-compose.override.yml watch\nИспользуй `&&` или запускай watch как foreground-процесс после up -d (detached). Итог: `make dev` → контейнеры стартуют + watch активен → правки в src подхватываются без ребилда."
+  },
+  {
+    "id": "F15",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Логотип: УТНКР сверху, ИНСПЕКТОР снизу (вертикально)",
+    "description": "В Sidebar.tsx, LoginPage.tsx и RegisterPage.tsx переделай блок с логотипом: убери горизонтальное расположение [лого | разделитель | текст] — не хватает места, идёт наложение. Новая структура — вертикальная колонка (flex-col, items-center):\n  [SVG лого UTNKR_RGB_01.1.svg]\n  [надпись ИНСПЕКТОР]\nУбери вертикальный разделитель (он был для горизонтального лейаута). Размеры: лого h-8 в Sidebar, h-10 на Login/Register. Надпись ИНСПЕКТОР: Oswald 700, uppercase, letter-spacing 0.08em — стили не менять, только направление flex."
+  },
+  {
+    "id": "F16",
+    "agent": "FRONTEND",
+    "status": "done",
+    "title": "Справочник дефектов — починить верстку и фон",
+    "description": "Тимлид видит косяки верстки на странице CatalogPage (справочник дефектов). Исправь:\n1) Фоновый паттерн (задача F14) не применился на эту страницу — убедись что body/background работает и на CatalogPage.\n2) Пройдись по всем элементам страницы: карточки систем, аккордеон с дефектами, бейджи критичности — всё должно корректно отображаться в обеих темах (светлой и тёмной).\n3) Проверь отступы, переносы текста, читаемость — ничего не должно обрезаться или накладываться.\n4) Если используются hardcoded цвета вместо CSS-переменных — заменить на var(--color-*)."
+  },
+  {
+    "id": "BUG-01",
+    "agent": "BACKEND",
+    "status": "done",
+    "title": "Ruff F821 — undefined name User/Analysis в моделях (блокирует CI)",
+    "reported_by": "TEAMLEAD",
+    "severity": "critical",
+    "description": "CI/CD падает на `ruff check .` с ошибками F821:\n- app/models/analysis.py:38 — Undefined name `User`\n- app/models/user.py:22 — Undefined name `Analysis`\n\nПричина: Ruff не может разрешить forward references в строках relationship('User') и Mapped['Analysis'].\n\nФИКС: добавь `from __future__ import annotations` первой строкой в оба файла:\n- app/models/analysis.py\n- app/models/user.py\n\nЭто делает все аннотации lazy (строками) по умолчанию — SQLAlchemy и Ruff оба будут довольны. После фикса проверь: `ruff check app/models/` — должно быть 0 ошибок. Затем прогони `mypy app --ignore-missing-imports` — убедись что типы не сломались."
+  },
+  {
+    "id": "BUG-02",
+    "agent": "FRONTEND",
+    "status": "done",
+    "reported_by": "TEAMLEAD",
+    "severity": "critical",
+    "title": "ESLint 3 ошибки — блокируют CI",
+    "description": "CI падает на `npm run lint`. Три ошибки:\n\n1) frontend/src/__tests__/UploadZone.test.tsx:1 — 'vi' is defined but never used. frontend/src/__tests__/UploadZone.test.tsx:2 — 'waitFor' is defined but never used. Фикс: удали неиспользуемые импорты vi и waitFor из этого файла.\n\n2) frontend/src/pages/AnalysisResultPage.tsx:343 — Calling setState synchronously within an effect (react-hooks/set-state-in-effect). Код: useEffect(() => { if (!selectedPhoto) setSelectedPhoto(analysis.photos[0]) }, [analysis, selectedPhoto]). Фикс: убери selectedPhoto из deps и добавь ранний возврат — useEffect(() => { if (analysis?.photos?.length > 0 && !selectedPhoto) { setSelectedPhoto(analysis.photos[0]) } }, [analysis]). После фикса: npm run lint должен вернуть 0 ошибок."
+  },
+  {
+    "id": "BUG-03",
+    "agent": "DEVOPS",
+    "status": "in_progress",
+    "reported_by": "TEAMLEAD",
+    "severity": "critical",
+    "title": "CI: pytest command not found",
+    "description": "CI падает: `pytest: command not found` (exit code 127). Причина: в GitHub Actions шаге с pytest не активировано virtualenv / не установлены зависимости.\n\nПроверь .github/workflows/ci.yml — шаг запуска pytest. Фикс: перед `pytest` добавь шаги:\n  - name: Install backend deps\n    run: pip install -r backend/requirements.txt\n    working-directory: backend\nИли если используется venv — активируй его перед запуском. Убедись что working-directory у шага pytest указан на backend/."
+  },
+  {
+    "id": "BUG-04",
+    "agent": "QA",
+    "status": "todo",
+    "reported_by": "TEAMLEAD",
+    "severity": "critical",
+    "title": "Playwright: конфликт версий — test.describe() не работает в e2e тестах",
+    "description": "CI падает с ошибкой: 'Playwright Test did not expect test.describe() to be called here'. Файлы: e2e/auth.spec.ts и e2e/catalog.spec.ts. Причина: конфликт двух версий @playwright/test — одна в devDependencies, другая подтягивается транзитивно.\n\nФикс:\n1) Проверь package.json — должна быть одна версия @playwright/test в devDependencies.\n2) Удали node_modules и package-lock.json, запусти npm install заново.\n3) В playwright.config.ts убедись что импорт идёт из @playwright/test, а не из playwright.\n4) В e2e/*.spec.ts импорт должен быть: import { test, expect } from '@playwright/test' — не из 'playwright'.\n5) Проверь что в CI шаге установлены браузеры: npx playwright install --with-deps chromium."
+  }
+]

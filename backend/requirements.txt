@@ -15,3 +15,6 @@ WeasyPrint
 openpyxl
 pydantic-settings
 email-validator
+pytest
+pytest-asyncio
+pytest-cov
