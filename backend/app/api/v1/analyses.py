@@ -142,7 +142,7 @@ async def create_analysis(
         select(Analysis)
         .where(Analysis.id == analysis_id)
         .options(
-            selectinload(Analysis.photos).selectinload(AnalysisPhoto.defects)
+            selectinload(Analysis.photos).selectinload(AnalysisPhoto.defects).selectinload(Defect.defect_type)
         )
     )
     analysis_out = result.scalar_one()
@@ -268,7 +268,7 @@ async def get_analysis(
         select(Analysis)
         .where(Analysis.id == analysis_id)
         .options(
-            selectinload(Analysis.photos).selectinload(AnalysisPhoto.defects)
+            selectinload(Analysis.photos).selectinload(AnalysisPhoto.defects).selectinload(Defect.defect_type)
         )
     )
     analysis = result.scalar_one_or_none()

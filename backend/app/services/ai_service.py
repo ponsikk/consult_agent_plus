@@ -40,22 +40,22 @@ You are an expert construction technical supervision inspector (TechNadzor). You
 Return ONLY a valid JSON object following the schema below. Do not include any markdown formatting (like ```json), preamble, or postamble.
 
 ## Schema
-{
+{{
   "defects": [
-    {
+    {{
       "defect_type": "STRING",
       "name": "STRING",
-      "bbox": { "x": float, "y": float, "w": float, "h": float },
+      "bbox": {{ "x": float, "y": float, "w": float, "h": float }},
       "criticality": "critical" | "significant" | "minor",
       "description": "STRING",
       "consequences": "STRING",
       "norm_references": ["STRING"],
       "recommendations": "STRING"
-    }
+    }}
   ],
   "overall_status": "satisfactory" | "unsatisfactory" | "critical",
   "summary": "STRING"
-}
+}}
 
 ## Guidelines
 - **bbox**: Use normalized coordinates (0.0 to 1.0). `x, y` is the top-left corner, `w, h` are width and height.
@@ -150,7 +150,12 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
                 
                 return analysis_result
                 
-        except (httpx.HTTPStatusError, json.JSONDecodeError, KeyError, Exception) as e:
+        except httpx.HTTPStatusError as e:
+            logger.warning(f"Attempt {attempt + 1} for AI analysis failed: {str(e)} - Body: {e.response.text}")
+            if attempt == 2:
+                return {"defects": [], "overall_status": "error", "summary": f"Ошибка анализа: {str(e)} - {e.response.text}"}
+            await asyncio.sleep(1 * (attempt + 1))
+        except (json.JSONDecodeError, KeyError, Exception) as e:
             logger.warning(f"Attempt {attempt + 1} for AI analysis failed: {str(e)}")
             if attempt == 2:
                 # If all retries failed, return an empty structure

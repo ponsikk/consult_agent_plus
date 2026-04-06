@@ -269,7 +269,7 @@ async def process_analysis(ctx: Dict[str, Any], analysis_id: str) -> None:
 
                 defects_list: List[Dict[str, str]] = [
                     {
-                        "criticality": d.criticality,
+                        "criticality": {"critical": "Критический", "significant": "Значительный", "minor": "Незначительный"}.get(d.criticality, d.criticality),
                         "description": d.description,
                         "norm_refs": ", ".join(d.norm_references) if d.norm_references else "",
                         "recommendations": d.recommendations,

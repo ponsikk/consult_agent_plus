@@ -20,6 +20,7 @@ class DefectOut(BaseModel):
     id: UUID
     photo_id: UUID
     defect_type_id: Optional[UUID] = None
+    defect_type: Optional["DefectTypeOut"] = None
     criticality: str
     bbox_x: float
     bbox_y: float
