@@ -1,4 +1,4 @@
-.PHONY: up down build logs migrate seed shell-backend shell-db dev prod watch
+.PHONY: up down build logs migrate seed shell-backend shell-db dev prod
 
 up:
 	docker compose up -d
@@ -24,18 +24,15 @@ shell-backend:
 shell-db:
 	docker compose exec postgres psql -U inspector -d inspector
 
-# Dev mode: Vite dev server with HMR on localhost:5173 + file sync watch
+# Dev mode: volume mounts → instant HMR without docker compose watch
+# Frontend: localhost:5173 (Vite dev server, changes visible immediately)
+# Backend:  localhost:8000 (uvicorn --reload)
 dev:
-	docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d && \
-	docker compose -f docker-compose.yml -f docker-compose.override.yml watch
-
-# Dev mode with watch only (if containers already running)
-watch:
-	docker compose -f docker-compose.yml -f docker-compose.override.yml watch
+	docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
 
 # Production mode: Nginx static build on localhost:80
 prod:
-	docker compose up
+	docker compose up --build
 
 clean:
 	docker compose down -v

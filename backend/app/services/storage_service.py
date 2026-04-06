@@ -46,5 +46,12 @@ class StorageService:
             )
         return url
 
+    async def ensure_bucket(self) -> None:
+        async with self._client() as client:
+            try:
+                await client.head_bucket(Bucket=settings.MINIO_BUCKET)
+            except Exception:
+                await client.create_bucket(Bucket=settings.MINIO_BUCKET)
+
 
 storage_service = StorageService()

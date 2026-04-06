@@ -37,6 +37,18 @@ async function fetchAnalyses(page: number, perPage: number): Promise<AnalysesLis
   return data
 }
 
+interface AnalysesStats {
+  total: number
+  processed_today: number
+  critical_defects: number
+  in_progress: number
+}
+
+async function fetchStats(): Promise<AnalysesStats> {
+  const { data } = await api.get('/analyses/stats')
+  return data
+}
+
 function StatusBadge({ status }: { status: AnalysisStatus }) {
   const config: Record<AnalysisStatus, { label: string; className: string }> = {
     pending: { label: 'Ожидает', className: 'bg-muted text-muted-foreground' },
@@ -115,31 +127,16 @@ export function DashboardPage() {
     refetchInterval: 10_000,
   })
 
-  // Stats query — large page to get better KPI coverage
-  const { data: statsData } = useQuery({
+  // Stats query — dedicated endpoint /analyses/stats
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['analyses-stats'],
-    queryFn: () => fetchAnalyses(1, 100),
-    refetchInterval: 10_000,
+    queryFn: fetchStats,
+    refetchInterval: 30_000,
   })
 
   const analyses = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = data?.pages ?? 1
-
-  const statsAnalyses = statsData?.items ?? []
-  const today = new Date().toISOString().split('T')[0]
-  const doneToday = statsAnalyses.filter(
-    (a) => a.status === 'done' && a.completed_at?.startsWith(today)
-  ).length
-  const inProcessing = statsAnalyses.filter((a) => a.status === 'processing').length
-  const criticalDefects = statsAnalyses.reduce((acc, a) => {
-    const count =
-      a.photos?.reduce(
-        (pAcc, p) => pAcc + (p.defects?.filter((d) => d.criticality === 'critical').length ?? 0),
-        0
-      ) ?? 0
-    return acc + count
-  }, 0)
 
   return (
     <div className="space-y-8">
@@ -154,10 +151,10 @@ export function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard title="Всего анализов" value={total} icon={BarChart3} delay={0.05} loading={isLoading} />
-        <KpiCard title="Обработано сегодня" value={doneToday} icon={Clock} delay={0.1} loading={isLoading} />
-        <KpiCard title="Критических дефектов" value={criticalDefects} icon={AlertTriangle} delay={0.15} loading={isLoading} />
-        <KpiCard title="В обработке" value={inProcessing} icon={Loader2} delay={0.2} loading={isLoading} />
+        <KpiCard title="Всего анализов" value={stats?.total ?? 0} icon={BarChart3} delay={0.05} loading={statsLoading} />
+        <KpiCard title="Обработано сегодня" value={stats?.processed_today ?? 0} icon={Clock} delay={0.1} loading={statsLoading} />
+        <KpiCard title="Критических дефектов" value={stats?.critical_defects ?? 0} icon={AlertTriangle} delay={0.15} loading={statsLoading} />
+        <KpiCard title="В обработке" value={stats?.in_progress ?? 0} icon={Loader2} delay={0.2} loading={statsLoading} />
       </div>
 
       {/* Table */}

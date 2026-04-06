@@ -3,14 +3,37 @@ import httpx
 import json
 import asyncio
 import logging
-from typing import Dict, Any
+import os
+from pathlib import Path
+from typing import Dict, Any, List
 from app.config import settings
 from app.services.mock_ai_service import analyze_photo_mock
 
 logger = logging.getLogger(__name__)
 
-# System prompt is also saved in coordination/prompts.md
-SYSTEM_PROMPT = """
+def _load_defect_catalog() -> str:
+    """Loads defect catalog for prompt injection."""
+    try:
+        # Paths for both Docker and Local development
+        candidates = [
+            Path("/coordination/defect_catalog.json"),
+            Path(__file__).parent.parent.parent / "coordination" / "defect_catalog.json",
+        ]
+        catalog_path = next((p for p in candidates if p.exists()), None)
+        if not catalog_path:
+            return "Catalog not found."
+        
+        with open(catalog_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            # Compact format for prompt: code - name
+            items = [f"- {item['code']}: {item['name']}" for item in data]
+            return "\n".join(items)
+    except Exception as e:
+        logger.error(f"Failed to load defect catalog: {e}")
+        return "Error loading catalog."
+
+# System prompt base
+SYSTEM_PROMPT_BASE = """
 You are an expert construction technical supervision inspector (TechNadzor). Your task is to analyze photographs of construction sites and identify defects, violations, and non-compliance with building codes (SP, SNiP, GOST).
 
 ## Output Format
@@ -20,7 +43,7 @@ Return ONLY a valid JSON object following the schema below. Do not include any m
 {
   "defects": [
     {
-      "code": "STRING",
+      "defect_type": "STRING",
       "name": "STRING",
       "bbox": { "x": float, "y": float, "w": float, "h": float },
       "criticality": "critical" | "significant" | "minor",
@@ -36,12 +59,15 @@ Return ONLY a valid JSON object following the schema below. Do not include any m
 
 ## Guidelines
 - **bbox**: Use normalized coordinates (0.0 to 1.0). `x, y` is the top-left corner, `w, h` are width and height.
-- **code**: Use the exact code from the provided defect catalog if a match is found.
+- **defect_type**: ОБЯЗАТЕЛЬНОЕ поле — всегда указывай тип дефекта (код) из справочника ниже. Никогда не оставляй пустым.
 - **criticality**: 
   - `critical`: Immediate risk to structural integrity or safety.
   - `significant`: Functional issue that will lead to damage if not fixed.
   - `minor`: Aesthetic issue or early-stage defect.
 - **Language**: All text fields must be in Russian.
+
+## Available Defect Types (Code: Name)
+{catalog}
 """
 
 async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
@@ -60,6 +86,9 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
         logger.error("OPENROUTER_API_KEY is not set")
         return {"defects": [], "overall_status": "error", "summary": "API Key missing"}
 
+    catalog = _load_defect_catalog()
+    system_prompt = SYSTEM_PROMPT_BASE.format(catalog=catalog)
+
     base64_image = base64.b64encode(image_bytes).decode('utf-8')
     
     headers = {
@@ -73,7 +102,7 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
         "messages": [
             {
                 "role": "system",
-                "content": SYSTEM_PROMPT
+                "content": system_prompt
             },
             {
                 "role": "user",

@@ -3,15 +3,14 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Download,
   FileText,
   TableIcon,
-  Loader2,
   AlertCircle,
   CheckCircle2,
   XCircle,
   Image as ImageIcon,
 } from 'lucide-react'
+import { TypewriterLoader } from '@/components/ui/TypewriterLoader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -51,30 +50,20 @@ async function fetchStatus(id: string) {
 function LoadingState() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-      >
-        <Loader2 className="w-12 h-12 text-primary" />
-      </motion.div>
-      <motion.div
+      <TypewriterLoader text="Анализируем фотографии..." />
+      <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: [0.4, 1, 0.4] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="text-center space-y-2"
+        className="text-muted-foreground text-sm text-center"
       >
-        <p className="text-xl font-heading font-semibold text-foreground">
-          Анализируем фотографии...
-        </p>
-        <p className="text-muted-foreground text-sm">
-          AI проверяет каждый дефект по нормативам СП/СНиП/ГОСТ
-        </p>
-      </motion.div>
+        AI проверяет каждый дефект по нормативам СП/СНиП/ГОСТ
+      </motion.p>
     </div>
   )
 }
 
-function OverallStatus({ analysis }: { analysis: Analysis }) {
+function CompactStatus({ analysis }: { analysis: Analysis }) {
   const defects = analysis.photos?.flatMap((p) => p.defects ?? []) ?? []
   const hasCritical = defects.some((d) => d.criticality === 'critical')
   const hasSignificant = defects.some((d) => d.criticality === 'significant')
@@ -87,36 +76,31 @@ function OverallStatus({ analysis }: { analysis: Analysis }) {
   const config = {
     critical: {
       icon: XCircle,
-      label: 'Критическое состояние',
-      className: 'text-red-500',
-      bg: 'bg-red-500/10 border-red-500/30',
+      label: 'Критическое',
+      className: 'text-red-600 dark:text-red-400',
+      bg: 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/30',
     },
     unsatisfactory: {
       icon: AlertCircle,
-      label: 'Неудовлетворительное состояние',
-      className: 'text-orange-500',
-      bg: 'bg-orange-500/10 border-orange-500/30',
+      label: 'Неудовл.',
+      className: 'text-orange-600 dark:text-orange-400',
+      bg: 'bg-orange-50 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/30',
     },
     satisfactory: {
       icon: CheckCircle2,
-      label: 'Удовлетворительное состояние',
-      className: 'text-green-500',
-      bg: 'bg-green-500/10 border-green-500/30',
+      label: 'Удовл.',
+      className: 'text-green-600 dark:text-green-400',
+      bg: 'bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-500/30',
     },
   }
 
   const { icon: Icon, label, className, bg } = config[status]
 
   return (
-    <div className={`rounded-lg border p-4 flex items-center gap-3 ${bg}`}>
-      <Icon className={`w-6 h-6 ${className}`} />
-      <div>
-        <p className={`font-semibold ${className}`}>{label}</p>
-        <p className="text-sm text-muted-foreground">
-          Дефектов найдено: {defects.length} (критических:{' '}
-          {defects.filter((d) => d.criticality === 'critical').length})
-        </p>
-      </div>
+    <div className={`rounded-lg border px-3 py-2 flex items-center gap-2 shrink-0 ${bg}`}>
+      <Icon className={`w-4 h-4 ${className}`} />
+      <span className={`text-sm font-medium ${className}`}>{label}</span>
+      <span className="text-xs text-muted-foreground ml-1">{defects.length} дефектов</span>
     </div>
   )
 }
@@ -140,23 +124,48 @@ function PhotoCanvas({
     ? `http://localhost:8000/api/v1/analyses/${photo.analysis_id}/photos/${photo.id}/annotated`
     : `http://localhost:8000/api/v1/analyses/${photo.analysis_id}/photos/${photo.id}/original`
 
+  const getRenderedRect = useCallback(() => {
+    const img = imgRef.current
+    if (!img || !imgLoaded) return null
+    const { naturalWidth, naturalHeight } = img
+    const elemW = img.clientWidth
+    const elemH = img.clientHeight
+    if (!elemW || !elemH) return null
+    const naturalAspect = naturalWidth / naturalHeight
+    const elemAspect = elemW / elemH
+    let renderedW: number, renderedH: number
+    if (elemAspect > naturalAspect) {
+      renderedH = elemH
+      renderedW = elemH * naturalAspect
+    } else {
+      renderedW = elemW
+      renderedH = elemW / naturalAspect
+    }
+    const offsetX = (elemW - renderedW) / 2
+    const offsetY = (elemH - renderedH) / 2
+    return { renderedW, renderedH, offsetX, offsetY, naturalWidth, naturalHeight }
+  }, [imgLoaded])
+
   const drawBoxes = useCallback(() => {
     const canvas = canvasRef.current
-    const img = imgRef.current
-    if (!canvas || !img || !imgLoaded) return
+    if (!canvas || !imgLoaded) return
+    const r = getRenderedRect()
+    if (!r) return
+    const { renderedW, renderedH, offsetX, offsetY, naturalWidth, naturalHeight } = r
 
-    const { naturalWidth, naturalHeight } = img
-    const { width, height } = img.getBoundingClientRect()
+    canvas.width = renderedW
+    canvas.height = renderedH
+    canvas.style.left = `${offsetX}px`
+    canvas.style.top = `${offsetY}px`
+    canvas.style.width = `${renderedW}px`
+    canvas.style.height = `${renderedH}px`
 
-    canvas.width = width
-    canvas.height = height
-
-    const scaleX = width / naturalWidth
-    const scaleY = height / naturalHeight
+    const scaleX = renderedW / naturalWidth
+    const scaleY = renderedH / naturalHeight
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    ctx.clearRect(0, 0, width, height)
+    ctx.clearRect(0, 0, renderedW, renderedH)
 
     const defects = photo.defects ?? []
     defects.forEach((d) => {
@@ -172,20 +181,20 @@ function PhotoCanvas({
       ctx.fillRect(x, y, w, h)
       ctx.strokeRect(x, y, w, h)
 
-      // Label
+      // Label above bounding box with semi-transparent dark background
       const label = d.defect_type?.name ?? d.criticality
       ctx.font = '11px Manrope, sans-serif'
       const textW = ctx.measureText(label).width
-      ctx.fillStyle = color
-      ctx.fillRect(x, y - 16, textW + 8, 16)
-      ctx.fillStyle = '#fff'
-      ctx.fillText(label, x + 4, y - 3)
+      const labelX = Math.max(0, x)
+      const labelY = Math.max(16, y)  // clamp so label doesn't go off-screen top
+      ctx.fillStyle = 'rgba(0,0,0,0.6)'
+      ctx.fillRect(labelX, labelY - 16, textW + 8, 16)
+      ctx.fillStyle = '#ffffff'
+      ctx.fillText(label, labelX + 4, labelY - 4)
     })
-  }, [photo, imgLoaded, hoveredDefect])
+  }, [photo, imgLoaded, hoveredDefect, getRenderedRect])
 
-  useEffect(() => {
-    drawBoxes()
-  }, [drawBoxes])
+  useEffect(() => { drawBoxes() }, [drawBoxes])
 
   useEffect(() => {
     const handleResize = () => drawBoxes()
@@ -195,16 +204,17 @@ function PhotoCanvas({
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
-    const img = imgRef.current
-    if (!canvas || !img) return
+    if (!canvas) return
+    const r = getRenderedRect()
+    if (!r) return
+    const { renderedW, renderedH, naturalWidth, naturalHeight } = r
 
     const rect = canvas.getBoundingClientRect()
     const mx = e.clientX - rect.left
     const my = e.clientY - rect.top
-    const { naturalWidth, naturalHeight, width, height } = img as HTMLImageElement & { width: number; height: number }
-    const bRect = img.getBoundingClientRect()
-    const scaleX = bRect.width / naturalWidth
-    const scaleY = bRect.height / naturalHeight
+
+    const scaleX = renderedW / naturalWidth
+    const scaleY = renderedH / naturalHeight
 
     const defects = photo.defects ?? []
     const hit = defects.find((d) => {
@@ -223,26 +233,22 @@ function PhotoCanvas({
       onHoverDefect(null)
       setTooltip(null)
     }
-
-    // suppress unused
-    void naturalWidth; void naturalHeight; void width; void height
   }
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full rounded-lg" style={{ minHeight: '120px' }}>
       <img
         ref={imgRef}
         src={imageUrl}
         alt="analysis photo"
-        className="w-full rounded-lg"
+        className="w-full max-h-[400px] object-contain rounded-lg block"
         onLoad={() => setImgLoaded(true)}
-        style={{ display: 'block' }}
       />
       <canvas
         ref={canvasRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => { onHoverDefect(null); setTooltip(null) }}
-        className="absolute inset-0 w-full h-full cursor-crosshair"
+        className="absolute cursor-crosshair"
         style={{ pointerEvents: 'all' }}
       />
       {tooltip && (
@@ -257,63 +263,98 @@ function PhotoCanvas({
   )
 }
 
-function DefectTable({ defects, hoveredId, onHover }: {
+function DefectTable({
+  defects,
+  hoveredId,
+  onHover,
+}: {
   defects: Defect[]
   hoveredId: string | null
   onHover: (id: string | null) => void
 }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
   if (defects.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        Дефектов не обнаружено
-      </div>
-    )
+    return <p className="text-center py-8 text-muted-foreground text-sm">Дефектов не обнаружено</p>
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Тип дефекта</TableHead>
-          <TableHead>Критичность</TableHead>
-          <TableHead>Норматив</TableHead>
-          <TableHead>Рекомендации</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {defects.map((d) => (
-          <TableRow
-            key={d.id}
-            onMouseEnter={() => onHover(d.id)}
-            onMouseLeave={() => onHover(null)}
-            className={`cursor-pointer transition-colors ${d.id === hoveredId ? 'bg-muted/50' : ''}`}
-          >
-            <TableCell className="font-medium">
-              {d.defect_type?.name ?? '—'}
-            </TableCell>
-            <TableCell>
-              <Badge
-                className={
-                  d.criticality === 'critical'
-                    ? 'bg-red-500/20 text-red-400'
-                    : d.criticality === 'significant'
-                    ? 'bg-orange-500/20 text-orange-400'
-                    : 'bg-yellow-500/20 text-yellow-400'
-                }
-              >
-                {CRITICALITY_LABELS[d.criticality]}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {d.norm_references?.join(', ') ?? '—'}
-            </TableCell>
-            <TableCell className="text-sm max-w-xs truncate">
-              {d.recommendations}
-            </TableCell>
+    <div className="overflow-x-auto">
+      <Table className="table-fixed">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[180px]">Тип дефекта</TableHead>
+            <TableHead className="w-[120px]">Критичность</TableHead>
+            <TableHead>Описание</TableHead>
+            <TableHead className="w-[200px]">Нормативы</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {defects.map((d) => {
+            const isExpanded = expandedId === d.id
+            const norms = d.norm_references ?? []
+            const firstNorm = norms[0]
+            const extraNormsCount = norms.length - 1
+
+            return (
+              <TableRow
+                key={d.id}
+                onMouseEnter={() => onHover(d.id)}
+                onMouseLeave={() => onHover(null)}
+                onClick={() => setExpandedId(isExpanded ? null : d.id)}
+                className={`cursor-pointer transition-colors align-top ${d.id === hoveredId ? 'bg-muted/50' : 'hover:bg-muted/30'}`}
+              >
+                <TableCell className="py-2 px-3 text-sm font-medium align-top">
+                  {d.defect_type?.name
+                    ? d.defect_type.name
+                    : <span className="text-muted-foreground">Н/У</span>
+                  }
+                </TableCell>
+                <TableCell className="py-2 px-3 align-top">
+                  <Badge
+                    variant="outline"
+                    className={`text-xs ${
+                      d.criticality === 'critical'
+                        ? 'badge-critical'
+                        : d.criticality === 'significant'
+                        ? 'badge-significant'
+                        : 'badge-minor'
+                    }`}
+                  >
+                    {CRITICALITY_LABELS[d.criticality]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="py-2 px-3 text-sm text-muted-foreground align-top">
+                  {d.recommendations
+                    ? <span className={isExpanded ? 'whitespace-normal break-words' : 'line-clamp-2'}>{d.recommendations}</span>
+                    : <span className="text-muted-foreground/60">Не указано</span>
+                  }
+                </TableCell>
+                <TableCell className="py-2 px-3 text-xs text-muted-foreground align-top">
+                  {norms.length === 0 ? (
+                    <span className="text-muted-foreground/60">Не указано</span>
+                  ) : (
+                    <span className="flex items-center gap-1 flex-wrap">
+                      <span>{firstNorm}</span>
+                      {extraNormsCount > 0 && (
+                        <Badge variant="outline" className="text-xs px-1 py-0 cursor-pointer">
+                          +{extraNormsCount}
+                        </Badge>
+                      )}
+                      {isExpanded && extraNormsCount > 0 && (
+                        <span className="block w-full mt-1 text-xs">
+                          {norms.slice(1).join(', ')}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
 
@@ -377,116 +418,111 @@ export function AnalysisResultPage() {
   const currentDefects = selectedPhoto?.defects ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-start justify-between flex-wrap gap-4"
+        className="flex items-start justify-between gap-3 flex-wrap"
       >
         <div>
           <h1 className="font-heading text-2xl font-semibold text-foreground">
             {analysis.object_name}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-0.5">
             Дата съёмки: {analysis.shot_date}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleDownload('pdf')}>
-            <FileText className="w-4 h-4 mr-2" />
-            Скачать PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleDownload('excel')}>
-            <TableIcon className="w-4 h-4 mr-2" />
-            Скачать Excel
-          </Button>
-        </div>
+        <CompactStatus analysis={analysis} />
       </motion.div>
 
-      {/* Overall status */}
+      {/* Photo section — full width */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-        <OverallStatus analysis={analysis} />
+        <Card>
+          <CardContent className="p-3 space-y-3">
+            {/* Photo tabs */}
+            <div className="flex gap-1 flex-wrap">
+              {(analysis.photos ?? []).map((photo) => {
+                const defectCount = photo.defects?.length ?? 0
+                const hasCritical = photo.defects?.some((d) => d.criticality === 'critical')
+                return (
+                  <button
+                    key={photo.id}
+                    onClick={() => setSelectedPhoto(photo)}
+                    className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-all ${
+                      selectedPhoto?.id === photo.id
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:border-primary/40 text-muted-foreground'
+                    }`}
+                  >
+                    <ImageIcon className="w-3 h-3 flex-shrink-0" />
+                    Фото {photo.order_index + 1}
+                    {defectCount > 0 && (
+                      <span className={`font-medium ${hasCritical ? 'text-red-500' : 'text-orange-500'}`}>
+                        ({defectCount})
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Canvas */}
+            <AnimatePresence mode="wait">
+              {selectedPhoto && (
+                <motion.div
+                  key={selectedPhoto.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <PhotoCanvas
+                    photo={selectedPhoto}
+                    hoveredDefect={hoveredDefect}
+                    onHoverDefect={setHoveredDefect}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-6">
-        {/* Photo list */}
-        <motion.div
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.15 }}
-          className="space-y-2"
-        >
-          {(analysis.photos ?? []).map((photo) => {
-            const defectCount = photo.defects?.length ?? 0
-            const hasCritical = photo.defects?.some((d) => d.criticality === 'critical')
-            return (
-              <button
-                key={photo.id}
-                onClick={() => setSelectedPhoto(photo)}
-                className={`w-full text-left rounded-lg border p-2 transition-all ${
-                  selectedPhoto?.id === photo.id
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/40'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm truncate">Фото {photo.order_index + 1}</span>
-                  {defectCount > 0 && (
-                    <Badge
-                      className={`ml-auto text-xs ${hasCritical ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}
-                    >
-                      {defectCount}
-                    </Badge>
-                  )}
-                </div>
-              </button>
-            )
-          })}
-        </motion.div>
+      {/* Defect table — full width */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="font-heading text-base">
+              Дефекты ({currentDefects.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <DefectTable
+              defects={currentDefects}
+              hoveredId={hoveredDefect}
+              onHover={setHoveredDefect}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
 
-        {/* Photo + defects */}
-        <div className="space-y-6">
-          <AnimatePresence mode="wait">
-            {selectedPhoto && (
-              <motion.div
-                key={selectedPhoto.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card>
-                  <CardContent className="pt-4">
-                    <PhotoCanvas
-                      photo={selectedPhoto}
-                      hoveredDefect={hoveredDefect}
-                      onHoverDefect={setHoveredDefect}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="font-heading text-base flex items-center gap-2">
-                      <Download className="w-4 h-4" />
-                      Дефекты на фото ({currentDefects.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <DefectTable
-                      defects={currentDefects}
-                      hoveredId={hoveredDefect}
-                      onHover={setHoveredDefect}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+      {/* Download buttons */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="flex gap-2"
+      >
+        <Button variant="outline" size="sm" onClick={() => handleDownload('pdf')}>
+          <FileText className="w-4 h-4 mr-2" />
+          Скачать PDF
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => handleDownload('excel')}>
+          <TableIcon className="w-4 h-4 mr-2" />
+          Скачать Excel
+        </Button>
+      </motion.div>
     </div>
   )
 }

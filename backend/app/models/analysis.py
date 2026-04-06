@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, date as date_type
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .user import User
 
 from sqlalchemy import String, DateTime, Date, Text, Float, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSON
@@ -34,7 +37,7 @@ class Analysis(Base):
     shot_date: Mapped[date_type] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String, default="pending", nullable=False)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="analyses")

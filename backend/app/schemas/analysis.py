@@ -76,6 +76,13 @@ class PaginatedAnalyses(BaseModel):
     per_page: int
 
 
+class DashboardStats(BaseModel):
+    total: int
+    processed_today: int
+    critical_defects: int
+    in_progress: int
+
+
 class DefectTypeOut(BaseModel):
     id: UUID
     code: str

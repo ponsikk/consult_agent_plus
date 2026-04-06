@@ -5,6 +5,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.analyses import router as analyses_router
 from app.api.v1.reports import router as reports_router
 from app.database import Base, engine
+from app.services.storage_service import storage_service
 
 app = FastAPI(title="Цифровой Инспектор API", version="1.0.0")
 
@@ -29,6 +30,7 @@ app.include_router(reports_router, prefix="/api/v1")
 async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    await storage_service.ensure_bucket()
 
 
 @app.get("/")

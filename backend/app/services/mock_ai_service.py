@@ -9,7 +9,7 @@ def get_mock_analysis_result() -> Dict[str, Any]:
     return {
         "defects": [
             {
-                "code": "ROOF_FLAT_001",
+                "defect_type": "ROOF_FLAT_001",
                 "name": "Вздутие кровельного покрытия",
                 "bbox": {"x": 0.2, "y": 0.3, "w": 0.1, "h": 0.1},
                 "criticality": "significant",
@@ -19,7 +19,7 @@ def get_mock_analysis_result() -> Dict[str, Any]:
                 "recommendations": "Вскрытие вздутия конвертом, просушка и наложение заплатки."
             },
             {
-                "code": "FACADE_001",
+                "defect_type": "FACADE_001",
                 "name": "Нарушение герметизации межпанельных швов",
                 "bbox": {"x": 0.5, "y": 0.1, "w": 0.05, "h": 0.4},
                 "criticality": "significant",

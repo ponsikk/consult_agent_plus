@@ -55,7 +55,7 @@ def _draw_bounding_boxes_sync(image_bytes: bytes, defects_data: List[Dict[str, A
             color = (234, 179, 8)
 
         draw.rectangle([x0, y0, x1, y1], outline=color, width=3)
-        label: str = defect.get("code", defect.get("defect_type_code", ""))
+        label: str = defect.get("defect_type", defect.get("code", defect.get("defect_type_code", "")))
         if label:
             draw.text((x0 + 4, y0 + 4), label, fill=color)
 
@@ -215,7 +215,7 @@ async def process_analysis(ctx: Dict[str, Any], analysis_id: str) -> None:
                 # d. Сохраняем дефекты в БД
                 for defect in defects_data:
                     bbox: Dict[str, float] = defect.get("bbox", {})
-                    defect_code: str = defect.get("code", defect.get("defect_type_code", ""))
+                    defect_code: str = defect.get("defect_type", defect.get("code", defect.get("defect_type_code", "")))
                     dt_result = await session.execute(
                         select(DefectType).where(DefectType.code == defect_code)
                     )

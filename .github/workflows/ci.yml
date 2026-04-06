@@ -13,6 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -20,17 +23,15 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: |
-          pip install ruff mypy
-          pip install -r requirements.txt
+        run: uv sync --frozen
 
       - name: Run ruff
         working-directory: backend
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Run mypy
         working-directory: backend
-        run: mypy app --ignore-missing-imports
+        run: uv run mypy app
 
   lint-frontend:
     name: Lint Frontend
@@ -78,6 +79,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -85,7 +89,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: pip install -r requirements.txt
+        run: uv sync --frozen
 
       - name: Run pytest
         working-directory: backend
@@ -100,7 +104,7 @@ jobs:
           OPENROUTER_API_KEY: test-key
           OPENROUTER_MODEL: google/gemini-2.5-flash-lite
           OPENROUTER_BASE_URL: https://openrouter.ai/api/v1
-        run: pytest --cov=app --cov-report=term-missing -v
+        run: uv run pytest --cov=app --cov-report=term-missing -v
 
   test-frontend:
     name: Test Frontend

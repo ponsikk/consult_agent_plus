@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TypewriterLoader } from '@/components/ui/TypewriterLoader'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
@@ -121,6 +122,14 @@ export function NewAnalysisPage() {
       return
     }
     mutation.mutate()
+  }
+
+  if (mutation.isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <TypewriterLoader text="Загружаем фотографии..." />
+      </div>
+    )
   }
 
   return (

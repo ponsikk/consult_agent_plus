@@ -8,9 +8,9 @@
       "items": {
         "type": "object",
         "properties": {
-          "code": {
+          "defect_type": {
             "type": "string",
-            "description": "Code of the defect from defect_catalog.json"
+            "description": "Code of the defect from defect_catalog.json. MANDATORY field."
           },
           "name": {
             "type": "string",
@@ -50,7 +50,7 @@
             "description": "Typical recommendations for fixing"
           }
         },
-        "required": ["code", "name", "bbox", "criticality", "description", "consequences", "norm_references", "recommendations"]
+        "required": ["defect_type", "name", "bbox", "criticality", "description", "consequences", "norm_references", "recommendations"]
       }
     },
     "overall_status": {

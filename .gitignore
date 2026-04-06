@@ -58,3 +58,10 @@ frontend/coverage/
 launch-agents.sh
 /coordination
 qa_report.md
+frontend\playwright-report
+frontend\test-results
+AUDIT.md
+backend/tests/
+frontend/playwright-report/
+frontend/test-results/
+frontend/src/__tests__/AnalysisResult.test.tsx

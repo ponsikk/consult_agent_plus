@@ -22,9 +22,9 @@ const SYSTEM_LABELS: Record<string, string> = {
 }
 
 const CRITICALITY_CONFIG = {
-  critical: { label: 'Критический', className: 'bg-destructive/20 text-destructive' },
-  significant: { label: 'Значительный', className: 'bg-primary/20 text-primary' },
-  minor: { label: 'Незначительный', className: 'bg-muted text-muted-foreground' },
+  critical: { label: 'Критический', className: 'badge-critical whitespace-nowrap shrink-0' },
+  significant: { label: 'Значительный', className: 'badge-significant whitespace-nowrap shrink-0' },
+  minor: { label: 'Незначительный', className: 'badge-minor whitespace-nowrap shrink-0' },
 }
 
 async function fetchCatalog(): Promise<DefectType[]> {
@@ -57,7 +57,7 @@ export function CatalogPage() {
   const systems = Object.keys(SYSTEM_LABELS).filter((s) => bySystem[s]?.length > 0)
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="w-full space-y-8">
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -108,15 +108,15 @@ export function CatalogPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.05 * sIdx }}
               >
-                <AccordionItem value={system}>
-                  <AccordionTrigger className="font-heading text-lg hover:no-underline">
+                <AccordionItem value={system} className="border border-border rounded-lg bg-card">
+                  <AccordionTrigger className="font-heading text-lg px-4 py-4 hover:no-underline flex items-center justify-between w-full">
                     <span className="flex items-center gap-3">
                       {SYSTEM_LABELS[system]}
                       <Badge variant="secondary">{bySystem[system].length}</Badge>
                     </span>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-3 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-4 pt-3 pb-4">
                       {bySystem[system].map((defect) => (
                         <DefectCard key={defect.id} defect={defect} />
                       ))}
@@ -136,13 +136,13 @@ function DefectCard({ defect }: { defect: DefectType }) {
   const crit = CRITICALITY_CONFIG[defect.default_criticality]
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+    <div className="rounded-md bg-muted/40 p-3 space-y-2">
       <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <p className="font-medium text-foreground">{defect.name}</p>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-foreground break-words">{defect.name}</p>
           <p className="text-xs text-muted-foreground font-mono mt-0.5">{defect.code}</p>
         </div>
-        <Badge className={crit.className}>{crit.label}</Badge>
+        <Badge variant="outline" className={crit.className}>{crit.label}</Badge>
       </div>
 
       {defect.norm_references && defect.norm_references.length > 0 && (

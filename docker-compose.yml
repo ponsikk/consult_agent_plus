@@ -55,7 +55,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: arq app.workers.analysis_worker.WorkerSettings
+    command: uv run arq app.workers.analysis_worker.WorkerSettings
     env_file:
       - .env
     depends_on:

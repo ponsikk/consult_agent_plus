@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from arq.connections import ArqRedis
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, status
-from sqlalchemy import func, select
+from sqlalchemy import Date, case, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -16,6 +16,7 @@ from app.schemas.analysis import (
     AnalysisListItem,
     AnalysisOut,
     AnalysisStatus,
+    DashboardStats,
     PaginatedAnalyses,
 )
 from app.services.storage_service import storage_service
@@ -206,6 +207,57 @@ async def list_analyses(
     return PaginatedAnalyses(items=items, total=total, page=page, per_page=per_page)
 
 
+@router.get("/stats", response_model=DashboardStats)
+async def get_dashboard_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> DashboardStats:
+    from datetime import date as date_cls
+
+    today = date_cls.today()
+
+    # total и счётчики по статусам за один запрос
+    stats_result = await db.execute(
+        select(
+            func.count(Analysis.id).label("total"),
+            func.sum(
+                case((
+                    (Analysis.status == "done") &
+                    (cast(Analysis.created_at, Date) == today),
+                    1
+                ), else_=0)
+            ).label("processed_today"),
+            func.sum(
+                case((
+                    Analysis.status.in_(["pending", "processing"]),
+                    1
+                ), else_=0)
+            ).label("in_progress"),
+        ).where(Analysis.user_id == current_user.id)
+    )
+    row = stats_result.one()
+    total: int = row.total or 0
+    processed_today: int = int(row.processed_today or 0)
+    in_progress: int = int(row.in_progress or 0)
+
+    # critical_defects — через join AnalysisPhoto → Defect
+    critical_result = await db.execute(
+        select(func.count(Defect.id))
+        .join(AnalysisPhoto, Defect.photo_id == AnalysisPhoto.id)
+        .join(Analysis, AnalysisPhoto.analysis_id == Analysis.id)
+        .where(Analysis.user_id == current_user.id)
+        .where(Defect.criticality == "critical")
+    )
+    critical_defects: int = critical_result.scalar_one() or 0
+
+    return DashboardStats(
+        total=total,
+        processed_today=processed_today,
+        critical_defects=critical_defects,
+        in_progress=in_progress,
+    )
+
+
 @router.get("/{analysis_id}", response_model=AnalysisOut)
 async def get_analysis(
     analysis_id: uuid.UUID,
@@ -246,3 +298,44 @@ async def get_analysis_status(
         status=analysis.status,
         error_message=analysis.error_message,
     )
+
+from fastapi.responses import Response
+
+@router.get("/{analysis_id}/photos/{photo_id}/original")
+async def get_original_photo(
+    analysis_id: uuid.UUID,
+    photo_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(AnalysisPhoto)
+        .join(Analysis)
+        .where(AnalysisPhoto.id == photo_id)
+        .where(Analysis.id == analysis_id)
+    )
+    photo = result.scalar_one_or_none()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    content = await storage_service.download_file(photo.original_key)
+    return Response(content=content, media_type="image/jpeg")
+
+@router.get("/{analysis_id}/photos/{photo_id}/annotated")
+async def get_annotated_photo(
+    analysis_id: uuid.UUID,
+    photo_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(AnalysisPhoto)
+        .join(Analysis)
+        .where(AnalysisPhoto.id == photo_id)
+        .where(Analysis.id == analysis_id)
+    )
+    photo = result.scalar_one_or_none()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    key = photo.annotated_key or photo.original_key
+    content = await storage_service.download_file(key)
+    return Response(content=content, media_type="image/jpeg")

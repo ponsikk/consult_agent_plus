@@ -23,7 +23,7 @@ async def test_analyze_photo_mock():
         assert "defects" in result
         assert len(result["defects"]) > 0
         assert result["overall_status"] == "unsatisfactory"
-        assert "ROOF_FLAT_001" in [d["code"] for d in result["defects"]]
+        assert "ROOF_FLAT_001" in [d["defect_type"] for d in result["defects"]]
     finally:
         settings.USE_MOCK_AI = original_mock_setting
 

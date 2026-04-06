@@ -1,5 +1,12 @@
-# Dev override: replaces Nginx with Vite dev server for HMR support.
-# Usage: make dev   (runs docker compose -f docker-compose.yml -f docker-compose.override.yml up)
+# Dev override: volume mounts for instant HMR without docker compose watch.
+# Usage: make dev
+#
+# How it works:
+#   - ./frontend:/app  — host source is mounted directly into container
+#   - /app/node_modules — anonymous volume preserves container's node_modules
+#     (prevents host from overwriting them with the Windows-side empty folder)
+#   - Vite dev server (target: dev) detects changes via CHOKIDAR_USEPOLLING
+#   - ./backend:/app + /app/.venv — same pattern for backend uvicorn --reload
 services:
   frontend:
     build:
@@ -9,10 +16,20 @@ services:
     ports:
       - "5173:5173"
     depends_on: []
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend/src
-          target: /app/src
-        - action: rebuild
-          path: ./frontend/package.json
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  backend:
+    environment:
+      - WATCHFILES_FORCE_POLLING=true
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+
+  worker:
+    volumes:
+      - ./backend:/app
+      - /app/.venv

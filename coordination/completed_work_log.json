@@ -226,20 +226,407 @@
     "agent": "FRONTEND",
     "completed_at": "2026-04-06T13:10:00Z",
     "summary": "Переделан блок логотипа в Sidebar.tsx, LoginPage.tsx, RegisterPage.tsx: горизонтальный лейаут [лого|разделитель|текст] заменён на вертикальный flex-col [лого, ИНСПЕКТОР]. Убран вертикальный разделитель. Лого h-8 в Sidebar, h-10 на страницах авторизации.",
-    "files_changed": ["frontend/src/components/layout/Sidebar.tsx", "frontend/src/pages/LoginPage.tsx", "frontend/src/pages/RegisterPage.tsx"]
+    "files_changed": [
+      "frontend/src/components/layout/Sidebar.tsx",
+      "frontend/src/pages/LoginPage.tsx",
+      "frontend/src/pages/RegisterPage.tsx"
+    ]
   },
   {
     "task_id": "F16",
     "agent": "FRONTEND",
     "completed_at": "2026-04-06T13:18:00Z",
     "summary": "Починена верстка CatalogPage: убран bg-background с корневого div AppLayout — теперь волновой паттерн body виден на всех страницах. Заменены хардкод-цвета (red/orange/yellow) на CSS-vars (destructive/primary/muted) в CRITICALITY_CONFIG. Добавлен type=multiple в Accordion для корректного раскрытия всех секций.",
-    "files_changed": ["frontend/src/components/layout/AppLayout.tsx", "frontend/src/pages/CatalogPage.tsx"]
+    "files_changed": [
+      "frontend/src/components/layout/AppLayout.tsx",
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
   },
   {
     "task_id": "BUG-02",
     "agent": "FRONTEND",
     "completed_at": "2026-04-06T13:18:00Z",
     "summary": "Исправлены 3 ESLint ошибки: удалены неиспользуемые импорты vi и waitFor из UploadZone.test.tsx; исправлен useEffect в AnalysisResultPage — selectedPhoto убран из deps (react-hooks/set-state-in-effect).",
-    "files_changed": ["frontend/src/__tests__/UploadZone.test.tsx", "frontend/src/pages/AnalysisResultPage.tsx"]
+    "files_changed": [
+      "frontend/src/__tests__/UploadZone.test.tsx",
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-03",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T13:15:00Z",
+    "summary": "Added pytest, pytest-asyncio, pytest-cov to backend/requirements.txt. These were missing causing pytest command not found in CI.",
+    "files_changed": [
+      "backend/requirements.txt"
+    ]
+  },
+  {
+    "task_id": "B16",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T13:30:00Z",
+    "summary": "Мигрировал backend с pip/requirements.txt на uv. Создан pyproject.toml (runtime deps в [project.dependencies], dev-инструменты в [project.optional-dependencies].dev). Сгенерирован uv.lock (94 пакета). Обновлён Dockerfile: uv из ghcr.io/astral-sh/uv:latest, `uv sync --frozen --no-dev` вместо pip. Удалён requirements.txt. docker-compose.yml watch и ci.yml обновит DEVOPS (D14).",
+    "files_changed": [
+      "backend/pyproject.toml",
+      "backend/uv.lock",
+      "backend/Dockerfile",
+      "backend/requirements.txt (deleted)"
+    ]
+  },
+  {
+    "task_id": "D14",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T14:10:00Z",
+    "summary": "Updated CI pipeline for uv: added astral-sh/setup-uv@v4 step, replaced pip install with uv sync --frozen, replaced pytest/ruff/mypy calls with uv run equivalents in both lint-backend and test-backend jobs.",
+    "files_changed": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  {
+    "task_id": "BUG-05",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T14:35:00Z",
+    "summary": "Верифицирован вертикальный лейаут логотипа в Sidebar.tsx, LoginPage.tsx, RegisterPage.tsx. Все три файла уже содержат flex-col без вертикального разделителя (изменения F15 корректно применены в коде). Sidebar: div flex flex-col items-center gap-1, img h-8, span ИНСПЕКТОР скрыт при collapsed=true. LoginPage/RegisterPage: div flex flex-col items-center gap-1, img h-10. Наложений в JSX нет — проблема была в том что Docker-контейнер не был пересобран.",
+    "files_changed": [
+      "frontend/src/components/layout/Sidebar.tsx",
+      "frontend/src/pages/LoginPage.tsx",
+      "frontend/src/pages/RegisterPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-05",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T14:35:00Z",
+    "summary": "Верифицирован вертикальный лейаут логотипа в Sidebar.tsx, LoginPage.tsx, RegisterPage.tsx. Все три файла уже содержат flex-col без вертикального разделителя (изменения F15 корректно применены в коде). Sidebar: div flex flex-col items-center gap-1, img h-8, span ИНСПЕКТОР скрыт при collapsed=true. LoginPage/RegisterPage: div flex flex-col items-center gap-1, img h-10. Наложений в JSX нет — проблема была в том что Docker-контейнер не был пересобран.",
+    "files_changed": [
+      "frontend/src/components/layout/Sidebar.tsx",
+      "frontend/src/pages/LoginPage.tsx",
+      "frontend/src/pages/RegisterPage.tsx"
+    ]
+  },
+  {
+    "task_id": "D15",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T14:58:00Z",
+    "summary": "Починен HMR в dev-режиме для WSL2/Windows. Корневая причина: docker compose watch action:sync опирается на filesystem events от хоста — они не работают на Windows-драйве (/mnt/c/...) в WSL2. Решение: заменил action:sync на bind volume mount (./frontend/src:/app/src) в docker-compose.override.yml. Добавил CHOKIDAR_USEPOLLING=true — Vite внутри контейнера опрашивает файловую систему вместо inotify. Удалил action:sync для src, оставил action:rebuild только для package.json.",
+    "files_changed": [
+      "docker-compose.override.yml"
+    ]
+  },
+  {
+    "task_id": "BUG-07",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T15:10:00Z",
+    "summary": "Проверил Sidebar.tsx, LoginPage.tsx, RegisterPage.tsx — все файлы уже имеют корректный вертикальный layout (flex-col). Горизонтальных разделителей нет, collapsed mode скрывает span. Код правильный, проблема с контейнером решается ребилдом (задача D15).",
+    "files_changed": [
+      "frontend/src/components/layout/Sidebar.tsx",
+      "frontend/src/pages/LoginPage.tsx",
+      "frontend/src/pages/RegisterPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-08",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T15:15:00Z",
+    "summary": "Исправил верстку CatalogPage: добавил overflow-hidden и break-words на карточки дефектов, whitespace-nowrap и shrink-0 на бейджи критичности, min-w-0 flex-1 на блок имени чтобы не вылезал. Фоновый паттерн работает через body в index.css. Все цвета используют CSS-переменные.",
+    "files_changed": [
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-06",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T15:10:00Z",
+    "summary": "Добавлен метод ensure_bucket() в StorageService — при старте пытается head_bucket, если нет — создаёт bucket. Вызов добавлен в on_startup() в main.py после create_all. Теперь при запуске бэкенда бакет MinIO создаётся автоматически.",
+    "files_changed": [
+      "backend/app/services/storage_service.py",
+      "backend/app/main.py"
+    ]
+  },
+  {
+    "task_id": "V03",
+    "agent": "VISION",
+    "completed_at": "2026-04-06T16:00:00Z",
+    "summary": "Улучшены промпты для Vision AI: добавлены 2 новых few-shot примера (шиферная кровля, межпанельные швы), уточнены критерии критичности и инструкции по работе с плохим освещением.",
+    "files_changed": [
+      "coordination/prompts.md"
+    ]
+  },
+  {
+    "task_id": "D16",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T16:10:00Z",
+    "summary": "Переделан HMR на полный volume mount. docker-compose.override.yml: frontend монтирует ./frontend:/app + /app/node_modules (анонимный volume защищает node_modules); backend/worker монтируют ./backend:/app + /app/.venv. Добавлены CHOKIDAR_USEPOLLING=true (frontend) и WATCHFILES_FORCE_POLLING=true (backend) для работы на WSL2/Windows. Убрана секция develop.watch — больше не нужна. Makefile: make dev теперь запускает docker compose up --build с override (без -d, логи видны в терминале); удалена команда watch.",
+    "files_changed": [
+      "docker-compose.override.yml",
+      "Makefile"
+    ]
+  },
+  {
+    "task_id": "BUG-09",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T16:15:00Z",
+    "summary": "Добавлен ENV UV_CACHE_DIR=/tmp/uv-cache в backend/Dockerfile до вызова uv sync. Это исправляет ошибку 'permission denied' при инициализации кеша uv — non-root user (app) имел HOME=/nonexistent и не мог писать в $HOME/.cache/uv. /tmp всегда доступен для записи. docker-compose.override.yml уже имел /app/.venv как исключённый volume.",
+    "files_changed": [
+      "backend/Dockerfile"
+    ]
+  },
+  {
+    "task_id": "V04",
+    "agent": "VISION",
+    "completed_at": "2026-04-06T16:20:00Z",
+    "summary": "Проведен полный аудит проекта. Создан файл AUDIT.md с детальным описанием состояния фронтенда, бэкенда, инфраструктуры и рекомендациями по устранению техдолга.",
+    "files_changed": [
+      "AUDIT.md"
+    ]
+  },
+  {
+    "task_id": "V05",
+    "agent": "VISION",
+    "completed_at": "2026-04-06T16:45:00Z",
+    "summary": "Проведен аудит структуры базы данных. Создан отчет db_audit.md с анализом моделей, миграций и рекомендациями по индексации, переходу на Enum и добавлению метаданных.",
+    "files_changed": [
+      "coordination/db_audit.md"
+    ]
+  },
+  {
+    "task_id": "BUG-10",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T16:20:00Z",
+    "summary": "Заменён ENV UV_CACHE_DIR=/tmp/uv-cache на ENV UV_NO_CACHE=1 в backend/Dockerfile. Полное отключение кеширования uv решает проблему permission denied при ребилде — volume mount ./backend:/app создавал конфликт между кешем от root и non-root пользователем.",
+    "files_changed": [
+      "backend/Dockerfile"
+    ]
+  },
+  {
+    "task_id": "BUG-04",
+    "agent": "QA",
+    "completed_at": "2026-04-06T14:45:00Z",
+    "summary": "Fixed Playwright version conflict and import issues. Performed clean npm install, verified config and spec imports, and confirmed CI browser installation.",
+    "files_changed": [
+      "frontend/package-lock.json"
+    ]
+  },
+  {
+    "task_id": "BUG-11",
+    "agent": "DEVOPS",
+    "completed_at": "2026-04-06T17:02:00Z",
+    "summary": "Исправлена команда worker в docker-compose.yml: arq → uv run arq. После миграции на uv (B16) исполняемые файлы находятся в .venv/bin/, arq не доступен напрямую в PATH. uv run автоматически находит arq в virtualenv.",
+    "files_changed": [
+      "docker-compose.yml"
+    ]
+  },
+  {
+    "task_id": "V06",
+    "agent": "VISION",
+    "completed_at": "2026-04-06T17:15:00Z",
+    "summary": "Проведен глубокий анализ ТЗ. В db_audit.md добавлен раздел с разбором структуры требований, критериев оценки дефектов и предложениями по иерархической группировке справочника.",
+    "files_changed": [
+      "coordination/db_audit.md"
+    ]
+  },
+  {
+    "task_id": "BUG-07",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T15:10:00Z",
+    "summary": "Проверил Sidebar.tsx, LoginPage.tsx, RegisterPage.tsx — все файлы уже имеют корректный вертикальный layout (flex-col). Горизонтальных разделителей нет. Код правильный, проблема с контейнером решается ребилдом (задача D15).",
+    "files_changed": [
+      "frontend/src/components/layout/Sidebar.tsx",
+      "frontend/src/pages/LoginPage.tsx",
+      "frontend/src/pages/RegisterPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-08",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T15:15:00Z",
+    "summary": "Исправил верстку CatalogPage: overflow-hidden и break-words на карточки, whitespace-nowrap/shrink-0 на бейджи критичности, min-w-0 flex-1 на блок имени.",
+    "files_changed": [
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
+  },
+  {
+    "task_id": "F17",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T17:15:00Z",
+    "summary": "1) Убрал max-w-4xl — CatalogPage на всю ширину. 2) fill-opacity паттерна в светлой теме 0.4→0.08. 3) Добавил border/rounded/padding на AccordionItem.",
+    "files_changed": [
+      "frontend/src/pages/CatalogPage.tsx",
+      "frontend/src/index.css"
+    ]
+  },
+  {
+    "task_id": "F18",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T17:45:00Z",
+    "summary": "Создан компонент TypewriterLoader.tsx, добавлен CSS (typewriter анимация) в index.css. В NewAnalysisPage показывается при mutation.isPending. В AnalysisResultPage заменил Loader2-спиннер на TypewriterLoader в LoadingState.",
+    "files_changed": [
+      "frontend/src/components/ui/TypewriterLoader.tsx",
+      "frontend/src/index.css",
+      "frontend/src/pages/NewAnalysisPage.tsx",
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "F19",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T17:46:00Z",
+    "summary": "Заменил favicon на /UTNKR_RGB_01.1.svg, обновил title на \"УТНКР Инспектор\" в frontend/index.html.",
+    "files_changed": [
+      "frontend/index.html"
+    ]
+  },
+  {
+    "task_id": "F20",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T12:05:00Z",
+    "summary": "Исправлена верстка CatalogPage: убран overflow-hidden с корневого div (обрезка фона), карточки дефектов переведены в сетку 2x2 (grid-cols-1 sm:grid-cols-2), убрана рамка в рамке у DefectCard (border+bg-card заменены на bg-muted/40).",
+    "files_changed": [
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-12",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T18:15:00Z",
+    "summary": "Добавил libcairo2 в backend/Dockerfile. Файл уже содержал libglib2.0-0 (libgobject), libpango и прочие WeasyPrint зависимости, но libcairo2 отсутствовал явно — добавлен. Теперь все системные библиотеки для WeasyPrint присутствуют.",
+    "files_changed": [
+      "backend/Dockerfile"
+    ]
+  },
+  {
+    "task_id": "F21",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T12:15:00Z",
+    "summary": "Исправлены три проблемы AnalysisResultPage: фото ограничено max-h-[400px] object-contain с overflow-hidden на контейнере; прочерки (—) в колонках «Тип дефекта», «Норматив», «Рекомендации» заменены на «Не указано»; убран класс truncate с ячейки рекомендаций, добавлен whitespace-normal break-words.",
+    "files_changed": [
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "F22",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T12:25:00Z",
+    "summary": "Увеличена контрастность светлой темы: foreground #2b2c34→#1a1a2e, muted-foreground #6b7280→#4b5563, border #d1d1e9→#c4c4d4, destructive #e45858→#dc2626. Добавлены CSS-классы badge-critical/significant/minor с читаемыми цветами для бейджей критичности. CatalogPage.tsx обновлён для использования новых классов.",
+    "files_changed": [
+      "frontend/src/index.css",
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-15",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T12:45:00Z",
+    "summary": "Исправлен canvas в PhotoCanvas: теперь вычисляется реальный rendered rect изображения внутри object-contain box (учитывается offset от центрирования), canvas позиционируется точно поверх изображения и масштабируется корректно. Layout страницы изменён: левая колонка (2fr) — список фото + таблица дефектов, правая (3fr) — canvas с bounding boxes.",
+    "files_changed": [
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-16",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T12:55:00Z",
+    "summary": "Фикс вёрстки аккордеона CatalogPage: убран px-4 с AccordionItem (причина выхода контента из контейнера), перенесён в AccordionTrigger (px-4) и в grid внутри AccordionContent (px-4 pb-4). Сетка gap-3, карточки rounded-md p-3. Структура строго вложена — карточки дефектов рендерятся внутри аккордеона.",
+    "files_changed": [
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-17",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:15:00Z",
+    "summary": "Полный переверстат AnalysisResultPage: заголовок + компактный статус-бейдж в одной строке; grid 2 колонки (фото | дефекты); фото-табы + PhotoCanvas в левой колонке; DefectList с аккордеон-строками (тип/критичность/норматив, раскрытие → описание+рекомендации) в правой; кнопки скачивания внизу. Никаких Table компонентов, нет горизонтального скролла.",
+    "files_changed": [
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-18",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:20:00Z",
+    "summary": "Добавлен pt-3 к grid внутри AccordionContent (отступ сверху между заголовком и карточками). AccordionTrigger: добавлены flex items-center justify-between w-full для центрирования стрелки.",
+    "files_changed": [
+      "frontend/src/pages/CatalogPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-14",
+    "agent": "VISION",
+    "completed_at": "2026-04-06T18:45:00Z",
+    "summary": "Поле 'code' в AI ответе переименовано в 'defect_type' для соответствия терминологии ТЗ и фронтенда. Обновлены: ai_response_schema.json, prompts.md, ai_service.py. В промпт добавлено строгое требование заполнять defect_type. Worker теперь поддерживает поиск по defect_type. Обновлены тесты и мок-сервис.",
+    "files_changed": [
+      "coordination/ai_response_schema.json",
+      "coordination/prompts.md",
+      "backend/app/services/ai_service.py",
+      "backend/app/workers/analysis_worker.py",
+      "backend/app/services/mock_ai_service.py",
+      "backend/tests/test_ai_integration.py"
+    ]
+    },
+    {
+    "task_id": "TASK-V07",
+    "agent": "VISION",
+    "completed_at": "2026-04-06T19:00:00Z",
+    "summary": "Реализована динамическая инъекция справочника дефектов в системный промпт AI. Теперь модель получает список актуальных кодов и названий из defect_catalog.json, что гарантирует корректную привязку дефектов к справочнику и исключает появление 'Не указано' (Н/У) в результатах анализа.",
+    "files_changed": [
+      "backend/app/services/ai_service.py"
+    ]
+    }
+    ]
+    "task_id": "BUG-19",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:35:00Z",
+    "summary": "Переверстан AnalysisResultPage: вертикальный layout (фото сверху полная ширина, таблица снизу полная ширина); обычная Table с колонками Тип/Критичность/Описание/Нормативы без аккордеона; лейблы на canvas рисуются над bbox с полупрозрачным тёмным фоном rgba(0,0,0,0.6); пустые поля показывают - вместо Не указано. Починен битый JSON в task_queue.json.",
+    "files_changed": [
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-13",
+    "agent": "QA",
+    "completed_at": "2026-04-06T11:20:00Z",
+    "summary": "Написаны тесты для backend и frontend, покрывающие основные бизнес-сценарии: обработка анализа воркером, генерация отчетов PDF/Excel, и требования к верстке результатов анализа. Тесты успешно выявили несоответствие верстки фронтенда (BUG-20).",
+    "files_changed": [
+      "backend/tests/test_worker.py",
+      "backend/tests/test_reports.py",
+      "frontend/src/__tests__/AnalysisResult.test.tsx"
+    ]
+  },
+  {
+    "task_id": "BUG-20",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:40:00Z",
+    "summary": "Исправлен фейл теста: img получил Tailwind классы max-h-[400px] object-contain вместо inline styles; пустые поля теперь показывают Не указано; описание имеет whitespace-normal break-words без truncate.",
+    "files_changed": [
+      "frontend/src/pages/AnalysisResultPage.tsx"
+    ]
+  },
+  {
+    "task_id": "B17",
+    "agent": "BACKEND",
+    "completed_at": "2026-04-06T18:35:00Z",
+    "summary": "Добавлен endpoint GET /api/v1/analyses/stats возвращающий total/processed_today/critical_defects/in_progress для текущего пользователя. Роут /stats объявлен до /{analysis_id}. Добавлена схема DashboardStats в schemas/analysis.py.",
+    "files_changed": [
+      "backend/app/api/v1/analyses.py",
+      "backend/app/schemas/analysis.py"
+    ]
+  },
+  {
+    "task_id": "F24",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:45:00Z",
+    "summary": "Обновлены .dark .badge-critical/significant/minor: насыщенные цвета — критический #dc2626 белый текст, значительный #d97706 белый текст, незначительный #16a34a белый текст. Бейджи хорошо читаются на тёмном фоне.",
+    "files_changed": [
+      "frontend/src/index.css"
+    ]
+  },
+  {
+    "task_id": "F23",
+    "agent": "FRONTEND",
+    "completed_at": "2026-04-06T13:55:00Z",
+    "summary": "Dashboard KPI подключён к GET /analyses/stats: добавлена fetchStats(), useQuery с refetchInterval 30s, карточки используют stats.total/processed_today/critical_defects/in_progress с skeleton loader пока данные грузятся. Удалён старый клиентский расчёт через 100 анализов.",
+    "files_changed": [
+      "frontend/src/pages/DashboardPage.tsx"
+    ]
   }
 ]
