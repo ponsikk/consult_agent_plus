@@ -342,7 +342,8 @@ export function AnalysisResultPage() {
     if (analysis?.photos && analysis.photos.length > 0 && !selectedPhoto) {
       setSelectedPhoto(analysis.photos[0])
     }
-  }, [analysis, selectedPhoto])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysis])
 
   const handleDownload = async (format: 'pdf' | 'excel') => {
     const ext = format === 'pdf' ? 'pdf' : 'xlsx'

@@ -21,7 +21,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />

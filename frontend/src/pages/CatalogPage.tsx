@@ -22,9 +22,9 @@ const SYSTEM_LABELS: Record<string, string> = {
 }
 
 const CRITICALITY_CONFIG = {
-  critical: { label: 'Критический', className: 'bg-red-500/20 text-red-400' },
-  significant: { label: 'Значительный', className: 'bg-orange-500/20 text-orange-400' },
-  minor: { label: 'Незначительный', className: 'bg-yellow-500/20 text-yellow-400' },
+  critical: { label: 'Критический', className: 'bg-destructive/20 text-destructive' },
+  significant: { label: 'Значительный', className: 'bg-primary/20 text-primary' },
+  minor: { label: 'Незначительный', className: 'bg-muted text-muted-foreground' },
 }
 
 async function fetchCatalog(): Promise<DefectType[]> {
@@ -100,7 +100,7 @@ export function CatalogPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Accordion defaultValue={systems} className="space-y-2">
+          <Accordion type="multiple" defaultValue={systems} className="space-y-2">
             {systems.map((system, sIdx) => (
               <motion.div
                 key={system}
