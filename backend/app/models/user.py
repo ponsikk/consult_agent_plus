@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import List, Optional
@@ -19,4 +21,4 @@ class User(Base):
     role: Mapped[str] = mapped_column(String, default="inspector")
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.utcnow)
 
-    analyses: Mapped[List["Analysis"]] = relationship("Analysis", back_populates="user")  # type: ignore[name-defined]
+    analyses: Mapped[List["Analysis"]] = relationship("Analysis", back_populates="user")

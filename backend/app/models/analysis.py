@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, date as date_type
 from typing import List, Optional
@@ -35,7 +37,7 @@ class Analysis(Base):
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.utcnow)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="analyses")  # type: ignore[name-defined]
+    user: Mapped["User"] = relationship("User", back_populates="analyses")
     photos: Mapped[List["AnalysisPhoto"]] = relationship(
         "AnalysisPhoto", back_populates="analysis", order_by="AnalysisPhoto.order_index"
     )
