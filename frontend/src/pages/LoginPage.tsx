@@ -53,9 +53,8 @@ export function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-12 w-auto flex-shrink-0" />
-            <div className="w-px h-6 bg-border flex-shrink-0" />
+          <div className="flex flex-col items-center gap-1">
+            <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-10 w-auto flex-shrink-0" />
             <span
               className="text-foreground flex-shrink-0"
               style={{

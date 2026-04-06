@@ -30,25 +30,22 @@ export function Sidebar({ onNavigate, collapsed = false }: { onNavigate?: () => 
       className="fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border flex flex-col z-40"
     >
       {/* Logo */}
-      <div className="p-6 flex items-center gap-3">
+      <div className="p-6 flex flex-col items-center gap-1">
         <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-8 w-auto flex-shrink-0" />
         {!collapsed && (
-          <>
-            <div className="w-px h-5 bg-sidebar-border flex-shrink-0" />
-            <span
-              className="text-sidebar-foreground flex-shrink-0"
-              style={{
-                fontFamily: "'Oswald', sans-serif",
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                lineHeight: 1,
-                fontSize: 'clamp(18px, 3vw, 26px)',
-              }}
-            >
-              ИНСПЕКТОР
-            </span>
-          </>
+          <span
+            className="text-sidebar-foreground flex-shrink-0"
+            style={{
+              fontFamily: "'Oswald', sans-serif",
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              lineHeight: 1,
+              fontSize: 'clamp(18px, 3vw, 26px)',
+            }}
+          >
+            ИНСПЕКТОР
+          </span>
         )}
       </div>
 
