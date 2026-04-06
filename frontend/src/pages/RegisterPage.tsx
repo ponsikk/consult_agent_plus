@@ -67,7 +67,23 @@ export function RegisterPage() {
         className="w-full max-w-md"
       >
         <div className="flex justify-center mb-8">
-          <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-12 w-auto" />
+          <div className="flex items-center gap-3">
+            <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-12 w-auto flex-shrink-0" />
+            <div className="w-px h-6 bg-border flex-shrink-0" />
+            <span
+              className="text-foreground flex-shrink-0"
+              style={{
+                fontFamily: "'Oswald', sans-serif",
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                lineHeight: 1,
+                fontSize: '28px',
+              }}
+            >
+              ИНСПЕКТОР
+            </span>
+          </div>
         </div>
 
         <Card>
