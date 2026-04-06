@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, Plus, BookOpen, LogOut, Sun, Moon, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Plus, BookOpen, LogOut, Sun, Moon } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useThemeStore } from '@/stores/themeStore'
 import { Button } from '@/components/ui/button'
@@ -31,7 +31,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
     >
       {/* Logo */}
       <div className="p-6 flex items-center gap-3">
-        <ShieldCheck className="w-7 h-7 text-primary" />
+        <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-8 w-auto flex-shrink-0" />
         <span className="font-heading text-xl font-semibold text-sidebar-foreground tracking-wide">
           Инспектор
         </span>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ShieldCheck, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -67,12 +67,7 @@ export function RegisterPage() {
         className="w-full max-w-md"
       >
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="w-10 h-10 text-primary" />
-            <span className="font-heading text-3xl font-semibold text-foreground tracking-wide">
-              Инспектор
-            </span>
-          </div>
+          <img src="/UTNKR_RGB_01.1.svg" alt="UTNKR" className="h-12 w-auto" />
         </div>
 
         <Card>
