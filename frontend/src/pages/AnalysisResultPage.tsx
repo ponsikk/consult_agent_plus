@@ -98,7 +98,7 @@ function CompactStatus({ analysis }: { analysis: Analysis }) {
   const { icon: Icon, label, className, bg } = config[status]
 
   return (
-    <div className={`rounded-lg border px-3 py-2 flex items-center gap-2 shrink-0 ${bg}`}>
+    <div className={`rounded-lg border px-3 h-9 flex items-center gap-2 shrink-0 ${bg}`}>
       <Icon className={`w-4 h-4 ${className}`} />
       <span className={`text-sm font-medium ${className}`}>{label}</span>
       <span className="text-xs text-muted-foreground ml-1">{defects.length} дефектов</span>
@@ -241,7 +241,7 @@ function PhotoCanvas({
         ref={imgRef}
         src={imageUrl}
         alt="analysis photo"
-        className="w-full max-h-[450px] object-contain rounded-lg block"
+        className="w-full max-h-[450px] object-contain rounded-lg block p-2"
         onLoad={() => setImgLoaded(true)}
       />
       <canvas
@@ -462,43 +462,55 @@ export function AnalysisResultPage() {
             {analysis.shot_date}
           </span>
         </div>
-        <CompactStatus analysis={analysis} />
+        <div className="flex items-center gap-3 flex-wrap">
+          <CompactStatus analysis={analysis} />
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="min-w-[140px] h-9" onClick={() => handleDownload('pdf')}>
+              <FileText className="w-4 h-4 mr-2" />
+              Скачать PDF
+            </Button>
+            <Button variant="outline" size="sm" className="min-w-[140px] h-9" onClick={() => handleDownload('excel')}>
+              <TableIcon className="w-4 h-4 mr-2" />
+              Скачать Excel
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       {/* === ОСНОВНОЙ LAYOUT === */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         
         {/* ЛЕВАЯ КОЛОНКА — фото с canvas */}
-        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
-          {/* Tabs */}
-          <div className="flex gap-2 flex-wrap">
-            {(analysis.photos ?? []).map((photo) => {
-              const defectCount = photo.defects?.length ?? 0
-              const hasCritical = photo.defects?.some((d) => d.criticality === 'critical')
-              return (
-                <button
-                  key={photo.id}
-                  onClick={() => setSelectedPhoto(photo)}
-                  className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-all ${
-                    selectedPhoto?.id === photo.id
-                      ? 'border-primary bg-primary/10 text-primary font-medium'
-                      : 'border-border hover:border-primary/40 text-muted-foreground bg-card'
-                  }`}
-                >
-                  <ImageIcon className="w-3.5 h-3.5" />
-                  Фото {photo.order_index + 1}
-                  {defectCount > 0 && (
-                    <span className={`ml-1 font-semibold ${hasCritical ? 'text-red-500' : 'text-orange-500'}`}>
-                      ({defectCount})
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col">
+          <Card className="overflow-hidden flex-1 flex flex-col">
+            <CardHeader className="pb-3 border-b bg-muted/20">
+              <div className="flex gap-2 flex-wrap">
+                {(analysis.photos ?? []).map((photo) => {
+                  const defectCount = photo.defects?.length ?? 0
+                  const hasCritical = photo.defects?.some((d) => d.criticality === 'critical')
+                  return (
+                    <button
+                      key={photo.id}
+                      onClick={() => setSelectedPhoto(photo)}
+                      className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-all ${
+                        selectedPhoto?.id === photo.id
+                          ? 'border-primary bg-primary/10 text-primary font-medium'
+                          : 'border-border hover:border-primary/40 text-muted-foreground bg-card'
+                      }`}
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Фото {photo.order_index + 1}
+                      {defectCount > 0 && (
+                        <span className={`ml-1 font-semibold ${hasCritical ? 'text-red-500' : 'text-orange-500'}`}>
+                          ({defectCount})
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 flex items-stretch">
               <AnimatePresence mode="wait">
                 {selectedPhoto ? (
                   <motion.div
@@ -507,6 +519,7 @@ export function AnalysisResultPage() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
+                    className="w-full"
                   >
                     <PhotoCanvas
                       photo={selectedPhoto}
@@ -515,7 +528,7 @@ export function AnalysisResultPage() {
                     />
                   </motion.div>
                 ) : (
-                  <div className="min-h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="min-h-[300px] w-full flex items-center justify-center text-muted-foreground">
                     Выберите фото для просмотра
                   </div>
                 )}
@@ -525,14 +538,14 @@ export function AnalysisResultPage() {
         </motion.div>
 
         {/* ПРАВАЯ КОЛОНКА — таблица дефектов */}
-        <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}>
-          <Card>
-            <CardHeader className="pb-3 border-b">
+        <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col">
+          <Card className="flex-1 flex flex-col">
+            <CardHeader className="pb-3 border-b bg-muted/20">
               <CardTitle className="font-heading text-lg">
                 Дефекты ({currentDefects.length})
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1">
               <DefectTable
                 defects={currentDefects}
                 hoveredId={hoveredDefect}
@@ -544,22 +557,7 @@ export function AnalysisResultPage() {
 
       </div>
 
-      {/* === НИЗ СТРАНИЦЫ === */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="flex gap-3 justify-end pt-4"
-      >
-        <Button variant="outline" onClick={() => handleDownload('pdf')}>
-          <FileText className="w-4 h-4 mr-2" />
-          Скачать PDF
-        </Button>
-        <Button variant="outline" onClick={() => handleDownload('excel')}>
-          <TableIcon className="w-4 h-4 mr-2" />
-          Скачать Excel
-        </Button>
-      </motion.div>
+
     </div>
   )
 }

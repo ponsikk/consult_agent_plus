@@ -191,7 +191,11 @@ async def process_analysis(ctx: Dict[str, Any], analysis_id: str) -> None:
             )
             photos = photos_result.scalars().all()
 
-            for photo in photos:
+            import asyncio
+            for idx, photo in enumerate(photos):
+                if idx > 0:
+                    logger.info("Sleeping for 5s to avoid rate limit...")
+                    await asyncio.sleep(5)
                 # a. Скачиваем из MinIO
                 image_bytes = await storage_service.download_file(photo.original_key)
 
