@@ -5,7 +5,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from functools import partial
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from arq.connections import RedisSettings
 from sqlalchemy import select
@@ -23,7 +23,7 @@ _executor = ThreadPoolExecutor(max_workers=4)
 try:
     from app.services.ai_service import analyze_photo
 except ImportError:
-    async def analyze_photo(image_bytes: bytes):  # type: ignore[misc]
+    async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:  # type: ignore[misc]
         return {}
 
 
@@ -31,7 +31,7 @@ except ImportError:
 # Синхронные CPU-intensive функции (выполняются в ThreadPoolExecutor)
 # ---------------------------------------------------------------------------
 
-def _draw_bounding_boxes_sync(image_bytes: bytes, defects_data: list) -> bytes:
+def _draw_bounding_boxes_sync(image_bytes: bytes, defects_data: List[Dict[str, Any]]) -> bytes:
     """Рисует bounding boxes на изображении. Запускается в executor."""
     from PIL import Image, ImageDraw
 
@@ -40,13 +40,13 @@ def _draw_bounding_boxes_sync(image_bytes: bytes, defects_data: list) -> bytes:
     draw = ImageDraw.Draw(img)
 
     for defect in defects_data:
-        bbox = defect.get("bbox", {})
-        x0 = bbox.get("x", 0) * width
-        y0 = bbox.get("y", 0) * height
-        x1 = (bbox.get("x", 0) + bbox.get("w", 0)) * width
-        y1 = (bbox.get("y", 0) + bbox.get("h", 0)) * height
+        bbox: Dict[str, float] = defect.get("bbox", {})
+        x0 = bbox.get("x", 0.0) * width
+        y0 = bbox.get("y", 0.0) * height
+        x1 = (bbox.get("x", 0.0) + bbox.get("w", 0.0)) * width
+        y1 = (bbox.get("y", 0.0) + bbox.get("h", 0.0)) * height
 
-        criticality = defect.get("criticality", "minor")
+        criticality: str = defect.get("criticality", "minor")
         if criticality == "critical":
             color = (239, 68, 68)
         elif criticality == "significant":
@@ -55,7 +55,7 @@ def _draw_bounding_boxes_sync(image_bytes: bytes, defects_data: list) -> bytes:
             color = (234, 179, 8)
 
         draw.rectangle([x0, y0, x1, y1], outline=color, width=3)
-        label = defect.get("code", defect.get("defect_type_code", ""))
+        label: str = defect.get("code", defect.get("defect_type_code", ""))
         if label:
             draw.text((x0 + 4, y0 + 4), label, fill=color)
 
@@ -67,7 +67,7 @@ def _draw_bounding_boxes_sync(image_bytes: bytes, defects_data: list) -> bytes:
 def _generate_pdf_sync(
     object_name: str,
     shot_date_str: str,
-    photo_parts: list,  # [{order_index, img_b64, defects: [{criticality, description, norm_refs, recommendations}]}]
+    photo_parts: List[Dict[str, Any]],
     total: int,
     critical: int,
     significant: int,
@@ -117,13 +117,14 @@ th{{background-color:#f0f0f0;}}.summary{{background:#f9f9f9;padding:15px;border-
 <p>Незначительных: <strong>{minor}</strong></p>
 </div></body></html>"""
 
-    return HTML(string=html_content).write_pdf()
+    result: bytes = HTML(string=html_content).write_pdf()
+    return result
 
 
 def _generate_excel_sync(
     object_name: str,
     shot_date_str: str,
-    photo_parts: list,
+    photo_parts: List[Dict[str, Any]],
     total: int,
     critical: int,
     significant: int,
@@ -163,7 +164,7 @@ def _generate_excel_sync(
 # ARQ task
 # ---------------------------------------------------------------------------
 
-async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
+async def process_analysis(ctx: Dict[str, Any], analysis_id: str) -> None:
     """ARQ task: обрабатывает анализ — AI, bounding boxes, PDF, Excel."""
     loop = asyncio.get_event_loop()
     logger.info(f"Starting analysis {analysis_id}")
@@ -174,7 +175,7 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
             result = await session.execute(
                 select(Analysis).where(Analysis.id == analysis_id)
             )
-            analysis = result.scalar_one_or_none()
+            analysis: Optional[Analysis] = result.scalar_one_or_none()
             if not analysis:
                 logger.error(f"Analysis {analysis_id} not found")
                 return
@@ -196,7 +197,9 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
 
                 # b. AI анализ (async I/O — не блокирует)
                 ai_result = await analyze_photo(image_bytes)
-                defects_data = ai_result.get("defects", []) if isinstance(ai_result, dict) else []
+                defects_data: List[Dict[str, Any]] = (
+                    ai_result.get("defects", []) if isinstance(ai_result, dict) else []
+                )
 
                 # c. Bounding boxes — CPU → executor
                 if defects_data:
@@ -211,21 +214,21 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
 
                 # d. Сохраняем дефекты в БД
                 for defect in defects_data:
-                    bbox = defect.get("bbox", {})
-                    defect_code = defect.get("code", defect.get("defect_type_code", ""))
+                    bbox: Dict[str, float] = defect.get("bbox", {})
+                    defect_code: str = defect.get("code", defect.get("defect_type_code", ""))
                     dt_result = await session.execute(
                         select(DefectType).where(DefectType.code == defect_code)
                     )
-                    defect_type = dt_result.scalar_one_or_none()
+                    defect_type: Optional[DefectType] = dt_result.scalar_one_or_none()
 
                     session.add(Defect(
                         photo_id=photo.id,
                         defect_type_id=defect_type.id if defect_type else None,
                         criticality=defect.get("criticality", "minor"),
-                        bbox_x=bbox.get("x", 0.0),
-                        bbox_y=bbox.get("y", 0.0),
-                        bbox_w=bbox.get("w", 0.0),
-                        bbox_h=bbox.get("h", 0.0),
+                        bbox_x=float(bbox.get("x", 0.0)),
+                        bbox_y=float(bbox.get("y", 0.0)),
+                        bbox_w=float(bbox.get("w", 0.0)),
+                        bbox_h=float(bbox.get("h", 0.0)),
                         description=defect.get("description", ""),
                         consequences=defect.get("consequences", ""),
                         norm_references=defect.get("norm_references", []),
@@ -242,12 +245,12 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
             )
             photos = photos_result.scalars().all()
 
-            defects_by_photo: dict = {}
+            defects_by_photo: Dict[Any, Any] = {}
             for photo in photos:
                 dr = await session.execute(select(Defect).where(Defect.photo_id == photo.id))
                 defects_by_photo[photo.id] = dr.scalars().all()
 
-            all_db_defects = [d for dl in defects_by_photo.values() for d in dl]
+            all_db_defects: List[Defect] = [d for dl in defects_by_photo.values() for d in dl]
             total = len(all_db_defects)
             critical = sum(1 for d in all_db_defects if d.criticality == "critical")
             significant = sum(1 for d in all_db_defects if d.criticality == "significant")
@@ -255,16 +258,16 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
             shot_date_str = analysis.shot_date.strftime("%d.%m.%Y") if analysis.shot_date else ""
 
             # Собираем данные для отчётов (загружаем изображения async)
-            photo_parts = []
+            photo_parts: List[Dict[str, Any]] = []
             for photo in photos:
-                img_key = photo.annotated_key or photo.original_key
+                img_key: str = photo.annotated_key or photo.original_key
                 try:
                     img_bytes = await storage_service.download_file(img_key)
-                    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+                    img_b64: str = base64.b64encode(img_bytes).decode("utf-8")
                 except Exception:
                     img_b64 = ""
 
-                defects_list = [
+                defects_list: List[Dict[str, str]] = [
                     {
                         "criticality": d.criticality,
                         "description": d.description,
@@ -280,7 +283,7 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
                 })
 
             # 4. PDF — CPU → executor
-            pdf_bytes = await loop.run_in_executor(
+            pdf_bytes: bytes = await loop.run_in_executor(
                 _executor,
                 partial(
                     _generate_pdf_sync,
@@ -298,7 +301,7 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
             )
 
             # 5. Excel — CPU → executor
-            excel_bytes = await loop.run_in_executor(
+            excel_bytes: bytes = await loop.run_in_executor(
                 _executor,
                 partial(
                     _generate_excel_sync,
@@ -346,11 +349,11 @@ async def process_analysis(ctx: dict[str, Any], analysis_id: str) -> None:
         raise
 
 
-async def startup(ctx: dict) -> None:
+async def startup(ctx: Dict[str, Any]) -> None:
     logger.info("ARQ worker started")
 
 
-async def shutdown(ctx: dict) -> None:
+async def shutdown(ctx: Dict[str, Any]) -> None:
     _executor.shutdown(wait=False)
     logger.info("ARQ worker shutting down")
 

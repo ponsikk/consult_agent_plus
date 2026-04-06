@@ -2,6 +2,7 @@ import uuid
 from datetime import date
 from typing import List, Optional
 
+from arq.connections import ArqRedis
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,8 +46,8 @@ async def create_analysis(
     photos: List[UploadFile] = [],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    arq_pool=Depends(get_arq_pool),
-):
+    arq_pool: ArqRedis = Depends(get_arq_pool),
+) -> Analysis:
     if not photos or len(photos) == 0:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -59,10 +60,11 @@ async def create_analysis(
         )
 
     for photo in photos:
-        if photo.content_type not in ALLOWED_MIME_TYPES:
+        content_type: str = photo.content_type or ""
+        if content_type not in ALLOWED_MIME_TYPES:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Unsupported file type: {photo.content_type}. Allowed: {', '.join(ALLOWED_MIME_TYPES)}",
+                detail=f"Unsupported file type: {content_type}. Allowed: {', '.join(ALLOWED_MIME_TYPES)}",
             )
 
     try:
@@ -79,10 +81,10 @@ async def create_analysis(
     analysis_id = uuid.uuid4()
 
     # Предварительно генерируем ключи MinIO (детерминированно)
-    photo_plan = []
+    photo_plan: List[tuple[uuid.UUID, UploadFile, str, int]] = []
     for idx, upload_file in enumerate(photos):
         photo_id = uuid.uuid4()
-        ext = MIME_TO_EXT.get(upload_file.content_type, "jpg")
+        ext = MIME_TO_EXT.get(upload_file.content_type or "", "jpg")
         key = f"photos/{analysis_id}/{photo_id}_original.{ext}"
         photo_plan.append((photo_id, upload_file, key, idx))
 
@@ -113,7 +115,7 @@ async def create_analysis(
     try:
         for _, upload_file, key, _ in photo_plan:
             data = await upload_file.read()
-            await storage_service.upload_file(key, data, upload_file.content_type)
+            await storage_service.upload_file(key, data, upload_file.content_type or "image/jpeg")
     except Exception as upload_err:
         # Помечаем анализ как ошибочный, не удаляя записи из БД
         result = await db.execute(select(Analysis).where(Analysis.id == analysis_id))
@@ -153,7 +155,7 @@ async def list_analyses(
     status: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> PaginatedAnalyses:
     defect_count_subq = (
         select(
             AnalysisPhoto.analysis_id,
@@ -179,18 +181,18 @@ async def list_analyses(
     count_result = await db.execute(
         select(func.count()).select_from(base_query.subquery())
     )
-    total = count_result.scalar_one()
+    total: int = count_result.scalar_one()
 
     offset = (page - 1) * per_page
-    rows = await db.execute(
+    rows_result = await db.execute(
         base_query.order_by(Analysis.created_at.desc()).offset(offset).limit(per_page)
     )
-    rows = rows.all()
+    rows = rows_result.all()
 
-    items = []
+    items: List[AnalysisListItem] = []
     for row in rows:
-        analysis_obj = row[0]
-        dc = row[1]
+        analysis_obj: Analysis = row[0]
+        dc: int = row[1]
         item = AnalysisListItem(
             id=analysis_obj.id,
             object_name=analysis_obj.object_name,
@@ -209,7 +211,7 @@ async def get_analysis(
     analysis_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> Analysis:
     result = await db.execute(
         select(Analysis)
         .where(Analysis.id == analysis_id)
@@ -230,7 +232,7 @@ async def get_analysis_status(
     analysis_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> AnalysisStatus:
     result = await db.execute(
         select(Analysis).where(Analysis.id == analysis_id)
     )

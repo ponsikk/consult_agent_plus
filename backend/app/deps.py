@@ -1,5 +1,5 @@
 from arq.connections import ArqRedis, RedisSettings, create_pool
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +17,10 @@ async def get_current_user(
 ) -> User:
     # BYPASS AUTH FOR DEV
     result = await db.execute(select(User).limit(1))
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No user found")
+    return user
 
 
 def _parse_redis_settings(redis_url: str) -> RedisSettings:
@@ -26,12 +29,12 @@ def _parse_redis_settings(redis_url: str) -> RedisSettings:
     url = redis_url
     if url.startswith("redis://"):
         url = url[len("redis://"):]
-    password = None
+    password: str | None = None
     if "@" in url:
         password, url = url.rsplit("@", 1)
         if password.startswith(":"):
             password = password[1:]
-    db = 0
+    db: int = 0
     if "/" in url:
         url, db_str = url.rsplit("/", 1)
         try:
