@@ -3,6 +3,7 @@ import httpx
 import json
 import asyncio
 import logging
+import traceback
 import os
 from pathlib import Path
 from typing import Dict, Any, List
@@ -90,7 +91,17 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
     system_prompt = SYSTEM_PROMPT_BASE.format(catalog=catalog)
 
     base64_image = base64.b64encode(image_bytes).decode('utf-8')
-    
+
+    # Detect image MIME type from magic bytes
+    if image_bytes[:8] == b'\x89PNG\r\n\x1a\n':
+        mime_type = "image/png"
+    elif image_bytes[:4] == b'RIFF' and image_bytes[8:12] == b'WEBP':
+        mime_type = "image/webp"
+    elif image_bytes[:3] == b'GIF':
+        mime_type = "image/gif"
+    else:
+        mime_type = "image/jpeg"
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -110,7 +121,7 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}"
+                            "url": f"data:{mime_type};base64,{base64_image}"
                         }
                     },
                     {
@@ -151,19 +162,22 @@ async def analyze_photo(image_bytes: bytes) -> Dict[str, Any]:
                 return analysis_result
                 
         except httpx.HTTPStatusError as e:
-            logger.warning(f"Attempt {attempt + 1} for AI analysis failed: {str(e)} - Body: {e.response.text}")
+            logger.warning(
+                f"Attempt {attempt + 1} for AI analysis failed [{type(e).__name__}]: {str(e)} - Body: {e.response.text}"
+            )
             if attempt == 2:
                 return {"defects": [], "overall_status": "error", "summary": f"Ошибка анализа: {str(e)} - {e.response.text}"}
-            await asyncio.sleep(1 * (attempt + 1))
-        except (json.JSONDecodeError, KeyError, Exception) as e:
-            logger.warning(f"Attempt {attempt + 1} for AI analysis failed: {str(e)}")
+            await asyncio.sleep(5)
+        except Exception as e:
+            logger.warning(
+                f"Attempt {attempt + 1} for AI analysis failed [{type(e).__name__}]: {str(e)}\n{traceback.format_exc()}"
+            )
             if attempt == 2:
-                # If all retries failed, return an empty structure
                 return {
-                    "defects": [], 
-                    "overall_status": "error", 
-                    "summary": f"Ошибка анализа после 3 попыток: {str(e)}"
+                    "defects": [],
+                    "overall_status": "error",
+                    "summary": f"Ошибка анализа после 3 попыток: {type(e).__name__}: {str(e)}"
                 }
-            await asyncio.sleep(1 * (attempt + 1)) # Exponential-ish backoff
+            await asyncio.sleep(5)
             
     return {"defects": [], "overall_status": "error", "summary": "Неизвестная ошибка анализа."}
