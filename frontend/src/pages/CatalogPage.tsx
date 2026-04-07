@@ -16,7 +16,7 @@ import type { DefectType } from '@/lib/types'
 const SYSTEM_LABELS: Record<string, string> = {
   roof_flat: 'Кровля плоская',
   roof_slate: 'Кровля шиферная',
-  facades: 'Фасады',
+  facade: 'Фасады',
   water_supply: 'Водоснабжение',
   heat_supply: 'Теплоснабжение',
 }

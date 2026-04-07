@@ -65,3 +65,4 @@ backend/tests/
 frontend/playwright-report/
 frontend/test-results/
 frontend/src/__tests__/AnalysisResult.test.tsx
+PROPOSALS.md
