@@ -36,8 +36,8 @@ export function Sidebar({ onNavigate, collapsed = false }: { onNavigate?: () => 
           <span
             className="text-sidebar-foreground flex-shrink-0"
             style={{
-              fontFamily: "'Oswald', sans-serif",
-              fontWeight: 700,
+              fontFamily: "'Play', sans-serif",
+              fontWeight: 400,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               lineHeight: 1,
